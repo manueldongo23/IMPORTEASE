@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: importease_db
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=20
+
+    env:
+      DB_URL: jdbc:mysql://127.0.0.1:3306/importease_db?useSSL=false&serverTimezone=America/Lima
+      DB_USER: importease_app
+      DB_PASSWORD: importease_dev
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+
+      - name: Wait for MySQL
+        run: |
+          for i in {1..40}; do
+            mysqladmin ping -h 127.0.0.1 -uroot -proot && exit 0
+            sleep 3
+          done
+          echo "MySQL did not become ready in time"
+          exit 1
+
+      - name: Prepare DB user
+        run: |
+          mysql -h 127.0.0.1 -uroot -proot -e "CREATE USER IF NOT EXISTS 'importease_app'@'%' IDENTIFIED BY 'importease_dev';"
+          mysql -h 127.0.0.1 -uroot -proot -e "GRANT ALL PRIVILEGES ON importease_db.* TO 'importease_app'@'%'; FLUSH PRIVILEGES;"
+
+      - name: Run verify (tests + coverage gate)
+        run: mvn -B -ntp verify
+
+      - name: Upload JaCoCo report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-report
+          path: target/site/jacoco/

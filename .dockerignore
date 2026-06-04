@@ -1,0 +1,11 @@
+target
+node_modules
+.agents
+.git
+*.log
+*.err
+.env
+.env.local
+src/main/resources/config-local.properties
+src/main/resources/application-local.properties
+sql/rsa_keys.dat

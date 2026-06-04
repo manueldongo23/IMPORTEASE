@@ -1,0 +1,40 @@
+# Build Java
+target/
+*.class
+*.jar
+*.war
+*.ear
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.DS_Store
+nbactions.xml
+
+# Node / frontend build
+node_modules/
+npm-debug.log*
+
+# Logs y temporales
+*.log
+*.err
+*.tmp
+*.bak
+
+# Secretos / entorno local
+config.properties
+src/main/resources/config.properties
+.env
+.env.local
+application-local.properties
+config-local.properties
+src/main/resources/config-local.properties
+src/main/resources/application-local.properties
+sql/rsa_keys.dat
+
+# Maven wrapper jar local
+.mvn/wrapper/maven-wrapper.jar
+
+# Agentes / archivos auxiliares no entregables
+.agents/
