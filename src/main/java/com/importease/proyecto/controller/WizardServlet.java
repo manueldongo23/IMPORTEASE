@@ -2,9 +2,9 @@ package com.importease.proyecto.controller;
 
 /** @deprecated Replaced by evaluacion.jsp + index.js (6-step client-side wizard). Will be removed in v2.0. */
 
-import com.importease.proyecto.repository.HsCodeDAO;
-import com.importease.proyecto.repository.OperacionDAO;
-import com.importease.proyecto.repository.UsuarioDAO;
+import com.importease.proyecto.repository.HsCodeRepositorio;
+import com.importease.proyecto.repository.OperacionRepositorio;
+import com.importease.proyecto.repository.UsuarioRepositorio;
 import com.importease.proyecto.service.*;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -18,11 +18,10 @@ import java.math.BigDecimal;
 @Deprecated
 @WebServlet("/wizard")
 public class WizardServlet extends HttpServlet {
-    private HsCodeDAO hsDao = new HsCodeDAO();
-    private OperacionDAO opDao = new OperacionDAO();
-    private UsuarioDAO usuarioDao = new UsuarioDAO();
+    private HsCodeRepositorio hsDao = new HsCodeRepositorio();
+    private OperacionRepositorio opDao = new OperacionRepositorio();
+    private UsuarioRepositorio usuarioDao = new UsuarioRepositorio();
 
-    /** Verifica que exista sesiÃ³n activa con usuarioId */
     private Integer getAuthenticatedUserId(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         HttpSession session = req.getSession(false);
         if (session == null || session.getAttribute("usuarioId") == null) {
@@ -32,14 +31,13 @@ public class WizardServlet extends HttpServlet {
         return (Integer) session.getAttribute("usuarioId");
     }
 
-    /** Valida que el usuario no intente saltarse pasos sin tener los datos requeridos en sesiÃ³n */
     private boolean validateStepSequence(HttpServletRequest req, HttpServletResponse resp, String step) throws IOException {
         HttpSession session = req.getSession();
         int stepNum = 1;
         try {
             if (step != null) stepNum = Integer.parseInt(step);
         } catch (NumberFormatException e) {
-            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Paso invÃ¡lido");
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Paso invalido");
             return false;
         }
 
@@ -117,13 +115,13 @@ public class WizardServlet extends HttpServlet {
                     session.setAttribute("flete", new BigDecimal(req.getParameter("flete")));
                     session.setAttribute("seguro", new BigDecimal(req.getParameter("seguro")));
                 } catch (NumberFormatException | NullPointerException e) {
-                    resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Valores monetarios invÃ¡lidos");
+                    resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Valores monetarios invalidos");
                     return;
                 }
                 break;
             case "5":
                 String hsCode = (String) session.getAttribute("hsCode");
-                VUCEValidatorService validator = new VUCEValidatorService();
+                VuceValidadorServicio validator = new VuceValidadorServicio();
                 session.setAttribute("vuceResultado", validator.validar(hsCode));
                 break;
             case "6":
@@ -136,13 +134,13 @@ public class WizardServlet extends HttpServlet {
 
                 com.importease.proyecto.model.HsCode hs = hsDao.obtenerPorCodigo(hsCodeCalc);
                 com.importease.proyecto.model.Usuario usuario = usuarioDao.buscarPorId(usuarioId);
-                BigDecimal tipoCambio = new TipoCambioService().obtenerTipoCambio();
+                BigDecimal tipoCambio = new TipoCambioServicio().obtenerTipoCambio();
 
                 String incoterm = (String) session.getAttribute("incoterm");
                 CalculadoraTributaria.ResultadoTributario calc = CalculadoraTributaria.calcularImpuestos(
                     hs, usuario, fob, flete, seguro, paisOrigen, tipoCambio, incoterm
                 );
-                RiskScoringService.ResultadoRiesgo riesgo = RiskScoringService.evaluarRiesgo(calc.getCif(), hs, usuario);
+                RiskScoringServicio.ResultadoRiesgo riesgo = RiskScoringServicio.evaluarRiesgo(calc.getCif(), hs, usuario);
 
                 session.setAttribute("calculo", calc);
                 session.setAttribute("riesgo", riesgo);
@@ -157,14 +155,14 @@ public class WizardServlet extends HttpServlet {
                 BigDecimal fleteFinal = (BigDecimal) session.getAttribute("flete");
                 BigDecimal seguroFinal = (BigDecimal) session.getAttribute("seguro");
                 CalculadoraTributaria.ResultadoTributario calcFinal = (CalculadoraTributaria.ResultadoTributario) session.getAttribute("calculo");
-                RiskScoringService.ResultadoRiesgo riesgoFinal = (RiskScoringService.ResultadoRiesgo) session.getAttribute("riesgo");
+                RiskScoringServicio.ResultadoRiesgo riesgoFinal = (RiskScoringServicio.ResultadoRiesgo) session.getAttribute("riesgo");
                 if (productoDesc == null || hsCodeFinal == null || paisOrigenFinal == null || incotermFinal == null
                         || fobFinal == null || fleteFinal == null || seguroFinal == null
                         || calcFinal == null || riesgoFinal == null) {
                     resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Debes completar todos los pasos anteriores antes de finalizar.");
                     return;
                 }
-                BigDecimal tipoCambioFinal = new TipoCambioService().obtenerTipoCambio();
+                BigDecimal tipoCambioFinal = new TipoCambioServicio().obtenerTipoCambio();
                 int usuarioIdFinal = authenticatedUserId;
 
                 com.importease.proyecto.model.Operacion op = new com.importease.proyecto.model.Operacion();

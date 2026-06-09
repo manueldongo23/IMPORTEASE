@@ -7,309 +7,331 @@
     <title>ImportEase - Enterprise Registration</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&family=JetBrains+Mono:wght@500;800&display=swap" rel="stylesheet">
-    <link href="css/tailwind-output.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@500;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link href="css/main.css" rel="stylesheet">
-    <script nonce="<%= request.getAttribute("csp_nonce") %>" src="js/toast.js"></script>
+    <link href="css/auth.css" rel="stylesheet">
     <script nonce="<%= request.getAttribute("csp_nonce") %>">
-        (function() {
-            if (localStorage.getItem('dark_mode') === 'true') {
-                document.documentElement.classList.add('dark-mode');
-            }
-        })();
+        (function() { if (localStorage.getItem('dark_mode') === 'true') document.documentElement.classList.add('dark-mode'); })();
     </script>
 </head>
-<body class="min-h-screen flex items-center justify-center p-6 md:p-12 text-[var(--text-primary)] bg-[var(--surface-0)] font-['Outfit']">
+<body class="auth-page auth-register">
 
-    <jsp:include page="/fragments/toast.jsp" />
+    <!-- Toast notification overlay -->
+    <div id="toastNotification" class="auth-toast">
+        <span id="toastIcon" class="auth-toast-icon"></span>
+        <div>
+            <p id="toastTitle" class="auth-toast-title"></p>
+            <p id="toastMessage" class="auth-toast-msg"></p>
+        </div>
+    </div>
 
-    <div class="glass-card w-full max-w-4xl p-8 md:p-12 space-y-8 relative z-10 fade-up bg-[var(--surface-1)] border border-[var(--border)] shadow-2xl">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-[var(--border)] pb-6">
-            <div class="space-y-2">
-                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--accent-soft)] border border-[var(--accent-glow)] mb-1">
-                    <span class="w-2 h-2 rounded-full bg-[var(--accent)]"></span>
-                    <span class="text-[9px] font-black text-[var(--accent)] uppercase tracking-[0.2em]">Registro Corporativo V2.0</span>
+    <div class="auth-panel-container">
+        <!-- LEFT PANEL -->
+        <div class="auth-panel-left">
+            <!-- Live neural connection animation -->
+            <canvas id="neuralCanvas"></canvas>
+            <div class="auth-panel-left-overlay"></div>
+
+            <!-- Floating Stats Widgets (Mapped directly to screenshot locations via IDs) -->
+            <div class="auth-stat-widget" id="stat-despachos">
+                <div class="auth-stat-icon green">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
+                    </svg>
                 </div>
-                <h1 class="text-3xl font-black text-[var(--text-primary)] tracking-tight">Alta de Empresa</h1>
-                <p class="text-[var(--text-secondary)] text-sm font-semibold">Configura tu perfil de importador y accede a la red logística.</p>
+                <div class="auth-stat-info">
+                    <div class="auth-stat-label">Despachos</div>
+                    <div class="auth-stat-value">98.7%</div>
+                    <div class="auth-stat-subtext">Efectividad</div>
+                </div>
             </div>
-            <div class="hidden lg:block text-right">
-                <p class="text-[9px] text-[var(--text-tertiary)] font-black uppercase tracking-widest mb-1">Estado del Padrón</p>
-                <div class="flex items-center gap-2 justify-end text-emerald-600">
-                    <span class="text-[10px] font-black uppercase tracking-widest">Sincronizado SUNAT</span>
-                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+
+            <div class="auth-stat-widget" id="stat-embarques">
+                <div class="auth-stat-icon blue">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"/>
+                    </svg>
+                </div>
+                <div class="auth-stat-info">
+                    <div class="auth-stat-label">Embarques</div>
+                    <div class="auth-stat-value">+12,450</div>
+                </div>
+            </div>
+
+            <div class="auth-stat-widget" id="stat-cumplimiento">
+                <div class="auth-stat-icon purple">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/>
+                    </svg>
+                </div>
+                <div class="auth-stat-info">
+                    <div class="auth-stat-label">Cumplimiento</div>
+                    <div class="auth-stat-value">100%</div>
+                    <div class="auth-stat-subtext">Regulatorio</div>
+                </div>
+            </div>
+
+            <div class="auth-stat-widget" id="stat-tiempo">
+                <div class="auth-stat-icon cyan">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <div class="auth-stat-info">
+                    <div class="auth-stat-label">Tiempo promedio</div>
+                    <div class="auth-stat-value">24h</div>
+                    <div class="auth-stat-subtext">Liberación</div>
+                </div>
+            </div>
+
+            <div class="auth-panel-left-content">
+                <!-- Brand header -->
+                <div class="auth-brand">
+                    <div class="auth-brand-logo">
+                        <span class="auth-brand-logo-text">e</span>
+                    </div>
+                    <span class="auth-brand-name">ImportEase <span>Enterprise</span></span>
+                </div>
+
+                <!-- Hero headline section -->
+                <div class="auth-hero-block">
+                    <h1 class="auth-hero-title">
+                        Logistics<br>
+                        <span class="accent">Intelligence.</span>
+                    </h1>
+                    <p class="auth-hero-desc">
+                        Plataforma unificada para el control técnico de importaciones, clasificación arancelaria y cumplimiento regulatorio en tiempo real.
+                    </p>
+
+                    <!-- Features list -->
+                    <div class="auth-features-strip">
+                        <div class="auth-feature-item">
+                            <div class="auth-feature-header auto">
+                                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12a7.5 7.5 0 0015 0m-15 0a7.5 7.5 0 1115 0m-15 0H3m16.5 0H21m-1.5 0H12m-8.457 3.077l1.41-1.41m12.102-12.102l1.41-1.41m0 14.152l-1.41-1.41M5.93 5.93l-1.41 1.41M12 3.75V3m0 16.5v.75m0-1.5V12"/>
+                                </svg>
+                                Automatización
+                            </div>
+                            <div class="auth-feature-desc">Flujos inteligentes</div>
+                        </div>
+                        <div class="auth-feature-item">
+                            <div class="auth-feature-header vis">
+                                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                </svg>
+                                Visibilidad
+                            </div>
+                            <div class="auth-feature-desc">Datos en tiempo real</div>
+                        </div>
+                        <div class="auth-feature-item">
+                            <div class="auth-feature-header cum">
+                                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z"/>
+                                </svg>
+                                Cumplimiento
+                            </div>
+                            <div class="auth-feature-desc">Normativa asegurada</div>
+                        </div>
+                    </div>
+
+                    <!-- Bottom security badge -->
+                    <div class="auth-bottom-capsule">
+                        <div class="auth-capsule-item">
+                            <svg class="auth-capsule-icon blue" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/>
+                            </svg>
+                            Entorno corporativo seguro
+                        </div>
+                        <span class="divider">|</span>
+                        <div class="auth-capsule-item">
+                            <span class="auth-capsule-dot-green"></span>
+                            Alta disponibilidad
+                        </div>
+                        <span class="divider">|</span>
+                        <div class="auth-capsule-item">
+                            <svg class="auth-capsule-icon purple" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/>
+                            </svg>
+                            Datos protegidos
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <form id="registroForm" class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-            <!-- RUC -->
-            <div class="space-y-2">
-                <label class="text-[10px] font-black text-[var(--text-tertiary)] uppercase tracking-[0.2em] ml-1">RUC (Registro Único)</label>
-                <div class="flex gap-3">
-                    <div class="relative flex-1 group">
-                        <div class="absolute inset-y-0 left-5 flex items-center pointer-events-none text-[var(--text-tertiary)] group-focus-within:text-[var(--accent)] transition-colors">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21h10.5V3.75c0-.621-.504-1.125-1.125-1.125h-8.25C6.879 2.625 6 3.504 6 4.5V21z"/>
+        <!-- RIGHT PANEL -->
+        <div class="auth-panel-right">
+            <div class="auth-card fade-up">
+                <!-- Systems operational status badge -->
+                <div class="auth-status-badge">
+                    <div class="auth-status-dot"></div>
+                    <span class="auth-status-text">Registro Corporativo</span>
+                </div>
+
+                <h2 class="auth-card-title">Alta de Empresa</h2>
+                <p class="auth-card-subtitle">Configura tu perfil de importador y accede a la red logística.</p>
+
+                <form id="registroForm">
+                    <!-- Grid for RUC & Razón Social -->
+                    <div class="auth-grid auth-grid-2">
+                        <!-- RUC -->
+                        <div class="auth-field">
+                            <div class="auth-field-header">
+                                <label class="auth-field-label" for="ruc">RUC (Registro Único)</label>
+                                <span id="rucValidoBadge" class="auth-validation-badge">VÁLIDO</span>
+                            </div>
+                            <div class="auth-ruc-row">
+                                <div class="auth-input-wrap" style="flex: 1;">
+                                    <span class="auth-input-icon">
+                                        <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 9a3 3 0 11-6 0 3 3 0 016 0zm6 3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                    </span>
+                                    <input type="text" id="ruc" class="auth-input" placeholder="20123456789" required maxlength="11" autocomplete="off">
+                                    <div id="rucCheck" class="auth-check-indicator">
+                                        <svg fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <button type="button" id="btnValidarRuc" class="auth-btn-validate">Validar</button>
+                            </div>
+                            <div class="auth-validation-subtext" style="margin-top: 0.35rem; display: flex; align-items: center; gap: 0.25rem;">
+                                <span id="rucIndicatorIcon" class="hidden text-emerald-500">
+                                    <svg width="12" height="12" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                    </svg>
+                                </span>
+                                <span id="rucValidationText">RUC pendiente de validación ante SUNAT.</span>
+                            </div>
+                        </div>
+
+                        <!-- Razón Social -->
+                        <div class="auth-field">
+                            <div class="auth-field-header">
+                                <label class="auth-field-label" for="razonSocial">Razón Social</label>
+                            </div>
+                            <div class="auth-input-wrap">
+                                <span class="auth-input-icon">
+                                    <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                                    </svg>
+                                </span>
+                                <input type="text" id="razonSocial" class="auth-input readonly-state" placeholder="Automático al validar RUC" required readonly>
+                                <div id="razonCheck" class="auth-check-indicator">
+                                    <svg fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="auth-validation-subtext" style="margin-top: 0.35rem; display: flex; align-items: center; gap: 0.25rem;">
+                                <span id="razonIndicatorIcon" class="hidden text-emerald-500">
+                                    <svg width="12" height="12" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                    </svg>
+                                </span>
+                                <span id="razonValidationText">Razón social de la empresa.</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Credentials section header -->
+                    <div style="margin: 1.5rem 0 0.75rem 0;">
+                        <span class="auth-section-header">Credenciales de Administrador</span>
+                    </div>
+
+                    <!-- Grid for Email & Password -->
+                    <div class="auth-grid auth-grid-2">
+                        <!-- Email -->
+                        <div class="auth-field">
+                            <div class="auth-field-header">
+                                <label class="auth-field-label" for="email">Email de Administrador</label>
+                            </div>
+                            <div class="auth-input-wrap">
+                                <span class="auth-input-icon">
+                                    <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"/>
+                                    </svg>
+                                </span>
+                                <input type="email" id="email" class="auth-input" placeholder="admin@empresa.com.pe" required autocomplete="email">
+                            </div>
+                        </div>
+
+                        <!-- Password -->
+                        <div class="auth-field">
+                            <div class="auth-field-header">
+                                <label class="auth-field-label" for="password">Clave de Acceso</label>
+                            </div>
+                            <div class="auth-input-wrap">
+                                <span class="auth-input-icon">
+                                    <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 00-2 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                                    </svg>
+                                </span>
+                                <input type="password" id="password" class="auth-input" placeholder="••••••••" required>
+                                <button type="button" class="auth-btn-toggle-pw" id="btnTogglePassword" aria-label="Mostrar contraseña">
+                                    <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Buen Contribuyente banner card -->
+                    <div class="auth-contribuyente-card">
+                        <div class="auth-contribuyente-icon">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
                             </svg>
                         </div>
-                        <input type="text" id="ruc" required maxlength="11" 
-                               class="w-full pl-14 pr-4 py-4 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] text-sm font-bold text-[var(--text-primary)] placeholder-[var(--text-tertiary)] focus:outline-none focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent-glow)] transition-all" 
-                               placeholder="20123456789">
+                        <div class="auth-contribuyente-info">
+                            <span class="auth-contribuyente-title">Certificación de Buen Contribuyente</span>
+                            <span class="auth-contribuyente-desc">Habilita beneficios arancelarios y prioridad en el despacho nacional ante SUNAT.</span>
+                        </div>
+                        <input type="checkbox" id="buenContribuyente" class="auth-contribuyente-checkbox">
                     </div>
-                    <button type="button" onclick="validarRuc(event)" 
-                            class="px-5 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] hover:bg-[var(--surface-2)] text-[9px] font-black uppercase tracking-widest text-[var(--accent)] transition-all active:scale-98">
-                        Validar
-                    </button>
-                </div>
-                <div class="flex flex-wrap items-center gap-2">
-                    <span id="rucSourceChip" class="source-chip source-chip--pending">PENDIENTE VALIDACIÓN</span>
-                    <span id="rucValidationText" class="text-[10px] font-bold text-[var(--text-secondary)]">La razón social no se tratará como oficial hasta validar la fuente.</span>
-                </div>
-            </div>
 
-            <!-- Razón Social -->
-            <div class="space-y-2">
-                <label class="text-[10px] font-black text-[var(--text-tertiary)] uppercase tracking-[0.2em] ml-1">Razón Social</label>
-                <div class="relative group">
-                    <div class="absolute inset-y-0 left-5 flex items-center pointer-events-none text-[var(--text-tertiary)] group-focus-within:text-[var(--accent)] transition-colors">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0012 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75z"/>
-                        </svg>
-                    </div>
-                    <input type="text" id="razonSocial" required 
-                           class="w-full pl-14 pr-6 py-4 rounded-2xl border border-[var(--border)] bg-[var(--surface-2)] text-sm font-bold text-[var(--text-secondary)] placeholder-[var(--text-tertiary)] focus:outline-none" 
-                           placeholder="Automático al validar RUC" readonly>
-                </div>
-            </div>
-
-            <!-- Email -->
-            <div class="space-y-2">
-                <label class="text-[10px] font-black text-[var(--text-tertiary)] uppercase tracking-[0.2em] ml-1">Email de Administrador</label>
-                <div class="relative group">
-                    <div class="absolute inset-y-0 left-5 flex items-center pointer-events-none text-[var(--text-tertiary)] group-focus-within:text-[var(--accent)] transition-colors">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"/>
-                        </svg>
-                    </div>
-                    <input type="email" id="email" required 
-                           class="w-full pl-14 pr-6 py-4 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] text-sm font-bold text-[var(--text-primary)] placeholder-[var(--text-tertiary)] focus:outline-none focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent-glow)] transition-all" 
-                           placeholder="admin@empresa.com.pe">
-                </div>
-            </div>
-
-            <!-- Password -->
-            <div class="space-y-2">
-                <label class="text-[10px] font-black text-[var(--text-tertiary)] uppercase tracking-[0.2em] ml-1">Clave de Acceso</label>
-                <div class="relative group">
-                    <div class="absolute inset-y-0 left-5 flex items-center pointer-events-none text-[var(--text-tertiary)] group-focus-within:text-[var(--accent)] transition-colors">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z"/>
-                        </svg>
-                    </div>
-                    <input type="password" id="password" required 
-                           class="w-full pl-14 pr-12 py-4 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] text-sm font-bold text-[var(--text-primary)] placeholder-[var(--text-tertiary)] focus:outline-none focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent-glow)] transition-all" 
-                           placeholder="••••••••">
-                    <button type="button" onclick="togglePasswordVisibility('password', this)" class="absolute inset-y-0 right-5 flex items-center text-[var(--text-tertiary)] hover:text-[var(--accent)] transition-colors">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    <!-- Submit Button -->
+                    <button type="submit" id="btnRegister" class="auth-button">
+                        GENERAR TOKEN DE ACCESO
+                        <svg class="arrow-icon" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/>
                         </svg>
                     </button>
+                </form>
+
+                <!-- Card Footer -->
+                <div class="auth-card-footer">
+                    <svg class="auth-footer-shield" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/>
+                    </svg>
+                    <span>Acceso seguro</span>
+                    <span class="divider">•</span>
+                    <span>Entorno corporativo</span>
                 </div>
             </div>
-            
-            <div class="md:col-span-2 flex items-center gap-5 p-5 rounded-2xl bg-[var(--accent-soft)] border border-[var(--accent-glow)] group hover:bg-[var(--accent-soft)]/20 transition-all cursor-pointer">
-                <div class="flex items-center h-6">
-                    <input type="checkbox" id="buenContribuyente" 
-                           class="w-5 h-5 rounded-md text-[var(--accent)] bg-[var(--surface-1)] border-[var(--border)] focus:ring-0 cursor-pointer">
-                </div>
-                <label for="buenContribuyente" class="flex-1 cursor-pointer">
-                    <p class="text-xs font-black text-[var(--text-primary)] uppercase tracking-wider group-hover:text-[var(--accent)] transition-colors">Certificación de Buen Contribuyente</p>
-                    <p class="text-[11px] text-[var(--text-secondary)] font-semibold mt-0.5">Habilita beneficios arancelarios y prioridad en el despacho nacional ante SUNAT.</p>
-                </label>
+
+            <!-- Subtle login link styled underneath card -->
+            <div class="auth-sub-footer-link" id="auth-register-footer">
+                ¿Ya tienes cuenta? <a href="login.jsp">Identifícate</a>
             </div>
-            
-            <div class="md:col-span-2 pt-4 flex flex-col items-center gap-5">
-                <button type="submit" id="btnRegister" class="w-full max-w-md py-4 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white text-xs font-black tracking-[0.2em] rounded-2xl shadow-lg transition-all transform active:scale-98">
-                    GENERAR TOKEN DE ACCESO
-                </button>
-                <p class="text-[var(--text-secondary)] text-[10px] font-black uppercase tracking-widest">
-                    ¿Ya tienes cuenta? 
-                    <a href="login.jsp" class="text-[var(--accent)] font-black hover:underline ml-1">Identifícate</a>
-                </p>
-            </div>
-        </form>
+        </div>
     </div>
 
+    <!-- CONFIGURATION & EXTERNAL LOGIC SCRIPTS -->
     <script nonce="<%= request.getAttribute("csp_nonce") %>">
-        async function validarRuc(event) {
-            const ruc = document.getElementById('ruc').value;
-            if (ruc.length !== 11) { showNotification('Validación', 'RUC debe contener 11 dígitos', false); return; }
-            if (!/^\d{11}$/.test(ruc)) { showNotification('Validación', 'RUC solo debe contener números', false); return; }
-            
-            const btn = event.currentTarget;
-            const original = btn.innerText;
-            btn.innerText = "Validando...";
-            btn.disabled = true;
-            
-            try {
-                const res = await fetch('<%= request.getContextPath() %>/api/usuario/validarRuc?ruc=' + ruc);
-                const data = await res.json();
-                const chip = document.getElementById('rucSourceChip');
-                const text = document.getElementById('rucValidationText');
-                const razonInput = document.getElementById('razonSocial');
-
-                if (data.error) {
-                    // RUC completamente inválido (no pasó ni dígito verificador)
-                    showNotification('RUC Inválido', 'El RUC ingresado no es válido. Verifica el número e intenta de nuevo.', false);
-                    btn.innerText = original;
-                    btn.disabled = false;
-                    chip.className = "source-chip source-chip--pending";
-                    chip.textContent = "INVÁLIDO";
-                    chip.style.color = "var(--red-600, #dc2626)";
-                    text.textContent = "El RUC no pasó la validación. Verifica que sea un número de 11 dígitos correcto.";
-                    return;
-                }
-
-                if (data.razonSocial) {
-                    razonInput.value = data.razonSocial;
-                    document.getElementById('buenContribuyente').checked = data.buenContribuyente || false;
-
-                    // Determinar si es validación por API externa o local
-                    const fuenteRuc = data.fuenteRuc || '';
-                    const esApiReal = fuenteRuc === 'TERCERO_API';
-                    const esSimulacion = fuenteRuc.includes('SIMULACION');
-                    const esLocal = (fuenteRuc.includes('LOCAL') || fuenteRuc.includes('VALIDACION_LOCAL')) && !esSimulacion;
-                    const esCache = fuenteRuc.includes('CACHE');
-
-                    if (data.rucValidado && esApiReal) {
-                        // ✅ Validado por API externa (máxima confianza)
-                        btn.innerText = "✓ Validado";
-                        btn.className = "px-5 rounded-2xl bg-emerald-50 border border-emerald-200 text-[9px] font-black text-emerald-600 uppercase tracking-widest";
-                        chip.className = "source-chip source-chip--third";
-                        chip.textContent = esCache ? "CACHÉ LOCAL" : (fuenteRuc || "TERCERO");
-                        text.textContent = "RUC validado por fuente " + (esCache ? "caché" : "externa") + ". Confianza: " + Math.round((data.rucConfianza || 0.82) * 100) + "%";
-                        razonInput.readOnly = true;
-                        razonInput.className = razonInput.className.replace('bg-[var(--surface-2)]', 'bg-[var(--surface-1)]');
-                    } else if (data.rucValidado && esSimulacion) {
-                        // 🟡 Simulado (sin token API, datos de prueba editables)
-                        btn.innerText = "✓ Simulado";
-                        btn.className = "px-5 rounded-2xl bg-yellow-50 border border-yellow-200 text-[9px] font-black text-yellow-700 uppercase tracking-widest";
-                        chip.className = "source-chip source-chip--pending";
-                        chip.style.background = "rgba(234,179,8,0.1)";
-                        chip.style.color = "#a16207";
-                        chip.style.borderColor = "#fde047";
-                        chip.textContent = "SIMULADO";
-                        text.textContent = "RUC válido (simulado). Confianza: " + Math.round((data.rucConfianza || 0.5) * 100) + "%. Corrige la razón social si es necesario.";
-                        razonInput.readOnly = false;
-                        razonInput.placeholder = "Corrige la razón social si es necesario";
-                        razonInput.className = razonInput.className.replace('bg-[var(--surface-2)]', 'bg-[var(--surface-1)]');
-                        razonInput.focus();
-                    } else if (data.rucValidado && esLocal) {
-                        // 🔵 Validado localmente (dígito verificador OK, pero sin razón social oficial)
-                        btn.innerText = "✓ Estructura OK";
-                        btn.className = "px-5 rounded-2xl bg-blue-50 border border-blue-200 text-[9px] font-black text-blue-600 uppercase tracking-widest";
-                        chip.className = "source-chip source-chip--pending";
-                        chip.style.background = "rgba(59,130,246,0.1)";
-                        chip.style.color = "#2563eb";
-                        chip.style.borderColor = "#93c5fd";
-                        chip.textContent = "VALIDACIÓN LOCAL";
-                        text.textContent = "RUC válido (dígito verificador OK). Confianza: " + Math.round((data.rucConfianza || 0.78) * 100) + "%. Ingresa la razón social manualmente.";
-                        // Permitir editar razón social ya que no viene de API oficial
-                        razonInput.readOnly = false;
-                        razonInput.value = "";
-                        razonInput.placeholder = "Ingresa la razón social de la empresa";
-                        razonInput.className = razonInput.className.replace('bg-[var(--surface-2)]', 'bg-[var(--surface-1)]');
-                        razonInput.focus();
-                    } else {
-                        // 🟠 No validado (pendiente)
-                        btn.innerText = "Pendiente";
-                        btn.className = "px-5 rounded-2xl bg-orange-50 border border-orange-200 text-[9px] font-black text-orange-700 uppercase tracking-widest";
-                        chip.className = "source-chip source-chip--pending";
-                        chip.textContent = "PENDIENTE VALIDACIÓN";
-                        text.textContent = "No se pudo validar con fuente externa. Puedes continuar, pero quedará marcado como no validado.";
-                        razonInput.readOnly = false;
-                        razonInput.placeholder = "Ingresa la razón social manualmente";
-                    }
-                } else {
-                    showNotification('RUC no válido', 'El número de RUC no es válido o no está registrado.', false);
-                    btn.innerText = original;
-                    btn.disabled = false;
-                }
-            } catch(e) {
-                showNotification('Error', 'Error de conexión al validar RUC. Intenta de nuevo.', false);
-                btn.innerText = original;
-                btn.disabled = false;
-            }
-        }
-
-        document.getElementById('registroForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('btnRegister');
-            btn.disabled = true;
-            btn.innerHTML = `
-                <div class="flex items-center justify-center gap-3">
-                    <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    PROCESANDO REGISTRO...
-                </div>
-            `;
-
-            const payload = {
-                ruc: document.getElementById('ruc').value,
-                razonSocial: document.getElementById('razonSocial').value,
-                email: document.getElementById('email').value,
-                passwordHash: document.getElementById('password').value,
-                buenContribuyente: document.getElementById('buenContribuyente').checked,
-                perfil: 'IMPORTADOR_ESTANDAR'
-            };
-
-            // Validación de contraseña en el cockpit
-            const pw = payload.passwordHash;
-            if (pw.length < 8) { showError('La contraseña debe tener al menos 8 caracteres'); return; }
-            if (!/[A-Z]/.test(pw)) { showError('La contraseña debe contener al menos una mayúscula'); return; }
-            if (!/[a-z]/.test(pw)) { showError('La contraseña debe contener al menos una minúscula'); return; }
-            if (!/\d/.test(pw)) { showError('La contraseña debe contener al menos un número'); return; }
-
-            function showError(msg) {
-                showNotification('Validación', msg, false);
-                btn.disabled = false;
-                btn.innerHTML = 'GENERAR TOKEN DE ACCESO';
-            }
-
-            try {
-                const res = await fetch('<%= request.getContextPath() %>/api/usuario/registro', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                
-                const data = await res.json();
-                if (data.success) {
-                    btn.innerHTML = 'CUENTA CREADA EXITOSAMENTE';
-                    btn.className = 'w-full max-w-md py-4 bg-emerald-500 text-white text-xs font-black tracking-[0.2em] rounded-2xl shadow-lg text-center';
-                    setTimeout(() => window.location.href = 'login.jsp', 1500);
-                } else {
-                    showNotification('Error', 'Error en el despliegue: ' + (data.mensaje || 'Validación fallida'), false);
-                    btn.disabled = false;
-                    btn.innerHTML = 'GENERAR TOKEN DE ACCESO';
-                }
-            } catch(e) {
-                btn.disabled = false;
-                btn.innerHTML = 'GENERAR TOKEN DE ACCESO';
-            }
-        });
-
-        function togglePasswordVisibility(id, btn) {
-            const input = document.getElementById(id);
-            if (input.type === 'password') {
-                input.type = 'text';
-                btn.innerHTML = `<svg class="w-5 h-5 text-[var(--accent)]" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" /></svg>`;
-            } else {
-                input.type = 'password';
-                btn.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>`;
-            }
-        }
+        window.ImportEase = window.ImportEase || {};
+        window.ImportEase.ctx = '<%= request.getContextPath() %>';
+        window.ImportEase.csrfToken = '<%= request.getAttribute("csrfToken") != null ? request.getAttribute("csrfToken") : "" %>';
+        window.ImportEase.csrfHeader = '<%= request.getAttribute("csrfHeader") != null ? request.getAttribute("csrfHeader") : "X-CSRF-TOKEN" %>';
+        window.ctx = window.ImportEase.ctx;
+        window.csrfToken = window.ImportEase.csrfToken;
     </script>
+    <script nonce="<%= request.getAttribute("csp_nonce") %>" src="js/toast.js"></script>
+    <script nonce="<%= request.getAttribute("csp_nonce") %>" src="js/auth-register.js" defer></script>
 </body>
 </html>

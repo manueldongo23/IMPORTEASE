@@ -13,6 +13,11 @@ public class ConexionDB {
     private static volatile DataSource springManagedDataSource;
     private static volatile HikariDataSource dataSource;
     private static volatile HikariDataSource dataSourceSecundario;
+    private static volatile javax.servlet.ServletContext servletContext;
+
+    public static void setServletContext(javax.servlet.ServletContext context) {
+        servletContext = context;
+    }
 
     static {
         cargarConfiguracion();
@@ -49,7 +54,7 @@ public class ConexionDB {
         String url = firstNonEmpty(System.getenv("DB_URL"), props.getProperty("db.url"));
         if (url == null) return;
 
-        String user = resolveCredential("DB_USER", "db.user", "root");
+        String user = resolveCredential("DB_USER", "db.user", "");
         String password = resolveCredential("DB_PASSWORD", "db.password", "");
 
         try {
@@ -102,8 +107,8 @@ public class ConexionDB {
             throw new IllegalStateException("db.url no configurado. No se puede iniciar ConexionDB.");
         }
 
-        String user = resolveCredential("DB_USER", "db.user", "importease_app");
-        String dbPassword = resolveCredential("DB_PASSWORD", "db.password", "importease_dev");
+        String user = resolveCredential("DB_USER", "db.user", "");
+        String dbPassword = resolveCredential("DB_PASSWORD", "db.password", "");
 
         // Intentar asegurar que existe la BD con las credenciales configuradas
         asegurarBaseDeDatosExiste(url, user, dbPassword);
@@ -198,7 +203,7 @@ public class ConexionDB {
                 try {
                     dataSource.close();
                 } catch (Exception ignored) {
-                    // no-op
+                    LoggerUtil.warn("Error al cerrar pool de conexion fallido: " + ignored.getMessage());
                 }
                 dataSource = null;
             }
@@ -210,6 +215,18 @@ public class ConexionDB {
         if (springManagedDataSource != null) {
             return springManagedDataSource.getConnection();
         }
+        if (servletContext != null) {
+            try {
+                org.springframework.web.context.WebApplicationContext wac = 
+                    org.springframework.web.context.support.WebApplicationContextUtils
+                    .getRequiredWebApplicationContext(servletContext);
+                DataSource ds = wac.getBean(DataSource.class);
+                springManagedDataSource = ds;
+                return ds.getConnection();
+            } catch (Exception e) {
+                LoggerUtil.warn("No se pudo obtener el DataSource de Spring desde ServletContext: " + e.getMessage());
+            }
+        }
         inicializarPoolSiNecesario();
         if (dataSource == null) {
             throw new SQLException("ConexionDB no inicializado.");
@@ -220,6 +237,18 @@ public class ConexionDB {
     public static Connection obtenerConexionSecundaria() throws SQLException {
         if (springManagedDataSource != null) {
             return springManagedDataSource.getConnection();
+        }
+        if (servletContext != null) {
+            try {
+                org.springframework.web.context.WebApplicationContext wac = 
+                    org.springframework.web.context.support.WebApplicationContextUtils
+                    .getRequiredWebApplicationContext(servletContext);
+                DataSource ds = wac.getBean(DataSource.class);
+                springManagedDataSource = ds;
+                return ds.getConnection();
+            } catch (Exception e) {
+                LoggerUtil.warn("No se pudo obtener el DataSource de Spring desde ServletContext (secundario): " + e.getMessage());
+            }
         }
         inicializarPoolSecundarioSiNecesario();
         if (dataSourceSecundario == null) {

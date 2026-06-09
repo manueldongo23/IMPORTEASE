@@ -1,18 +1,16 @@
 package com.importease.proyecto.service;
 
 import javax.servlet.*;
-import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import com.importease.proyecto.model.Usuario;
-import com.importease.proyecto.repository.UsuarioDAO;
+import com.importease.proyecto.repository.UsuarioRepositorio;
 
-@WebFilter(urlPatterns = {"*.jsp"})
 public class SessionFilter implements Filter {
 
-    private UsuarioDAO usuarioDao = new UsuarioDAO();
+    private UsuarioRepositorio usuarioDao = new UsuarioRepositorio();
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {}
@@ -56,7 +54,7 @@ public class SessionFilter implements Filter {
                 res.sendRedirect(req.getContextPath() + "/login.jsp");
             }
         } finally {
-            TipoCambioService.limpiarThreadLocal();
+            TipoCambioServicio.limpiarThreadLocal();
         }
     }
 

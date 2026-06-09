@@ -9,12 +9,21 @@ public class ContextCleanupListener implements ServletContextListener {
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
+        com.importease.proyecto.service.ConexionDB.setServletContext(sce.getServletContext());
         LoggerUtil.info("ContextCleanupListener inicializado correctamente.");
     }
 
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
-        LoggerUtil.info("Iniciando limpieza del contexto de la aplicaciÃ³n para evitar fugas de memoria...");
+        LoggerUtil.info("Iniciando limpieza del contexto de la aplicación para evitar fugas de memoria...");
+        
+        // 0. Apagar pool de hilos del PanelServicio
+        try {
+            PanelServicio.shutdownExecutor();
+            LoggerUtil.info("Pool de hilos del PanelServicio cerrado exitosamente.");
+        } catch (Exception e) {
+            LoggerUtil.error("Error al cerrar el pool de hilos del PanelServicio", e);
+        }
         
         // 1. Cerrar pool de HikariCP
         ConexionDB.cerrarPool();

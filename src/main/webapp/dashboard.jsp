@@ -1,11 +1,25 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" isELIgnored="true" %>
 <%@ page import="java.util.*" %>
+<%!
+    private String escapeJs(String value) {
+        if (value == null) return "";
+        return value.replace("\\", "\\\\").replace("'", "\\'").replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "\\r").replace("</", "<\\/");
+    }
+%>
 <%
     if (session.getAttribute("usuarioId") == null) {
         response.sendRedirect("login.jsp"); return;
     }
-    String userRuc = (String) session.getAttribute("usuarioRuc");
+    String userRuc    = (String) session.getAttribute("usuarioRuc");
     String userNombre = (String) session.getAttribute("usuarioNombre");
+    String userNombreDisplay = (userNombre != null && !userNombre.trim().isEmpty()) ? userNombre : "Usuario";
+    String initials2 = "US";
+    String[] nameParts = userNombreDisplay.trim().split("\\s+");
+    if (nameParts.length >= 2) {
+        initials2 = (nameParts[0].substring(0,1) + nameParts[1].substring(0,1)).toUpperCase();
+    } else if (nameParts.length == 1 && nameParts[0].length() >= 1) {
+        initials2 = nameParts[0].substring(0, Math.min(2, nameParts[0].length())).toUpperCase();
+    }
 %>
 <!DOCTYPE html>
 <html lang="es">
@@ -13,17 +27,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ImportEase - Inicio</title>
-    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <meta name="description" content="Importa paso a paso con ImportEase. Fácil, segura y sin errores.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <script nonce="<%= request.getAttribute("csp_nonce") %>" async src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link href="css/tailwind-output.css" rel="stylesheet">
     <link href="css/main.css" rel="stylesheet">
+
+<link href="css/utilidades.css" rel="stylesheet">
+<link href="css/componentes.css" rel="stylesheet">
+<link href="css/dashboard.css" rel="stylesheet">
 </head>
-<body class="flex h-screen overflow-hidden bg-[var(--surface-0)] font-['Outfit'] text-[var(--text-primary)]">
+
+<body class="flex h-screen overflow-hidden" style="font-family:'Outfit',sans-serif;background:#f5f6fa;">
     <% request.setAttribute("activePage", "dashboard"); %>
-<% 
+<%
     List<Map<String,String>> crumbs = new ArrayList<>();
     crumbs.add(java.util.Map.of("url","dashboard.jsp","label","Inicio"));
     crumbs.add(java.util.Map.of("label","Panel"));
@@ -31,643 +49,324 @@
 %>
     <jsp:include page="/fragments/sidebar.jsp" />
 
-    <main class="flex-1 flex flex-col overflow-hidden relative">
-        <div id="draftAlert" class="hidden fixed top-20 right-10 z-[110] bg-[var(--surface-1)] border border-[var(--border)] p-4 rounded-2xl shadow-xl flex items-center gap-4 animate-fadeUp">
-            <div class="w-10 h-10 rounded-2xl bg-[var(--accent-soft)] border border-[var(--accent-glow)] flex items-center justify-center text-[var(--accent)] font-black">D</div>
-            <div>
-                <p class="text-[10px] font-black uppercase text-[var(--accent)] tracking-[0.2em]">Borrador detectado</p>
-                <a href="evaluacion.jsp?step=1" class="text-xs font-bold underline text-[var(--accent)]">Retomar importación</a>
-            </div>
-            <button onclick="borrarBorrador()" class="text-[var(--text-tertiary)] ml-4 hover:text-[var(--text-primary)]">✕</button>
-        </div>
+    <main class="flex-1 flex flex-col overflow-hidden">
 
-        <header class="h-16 border-b border-[var(--border)] px-8 flex items-center justify-between bg-[var(--surface-1)]/80 backdrop-blur-xl z-20">
-            <div class="px-4 py-1.5 bg-[var(--accent-soft)] rounded-full flex items-center gap-3 border border-[var(--accent-glow)]">
-                <span class="w-2 h-2 rounded-full bg-[var(--accent)] animate-pulse"></span>
-                <span class="text-[11px] font-black text-[var(--accent)] uppercase tracking-[0.22em]">Guia para empezar</span>
-            </div>
-
-            <a href="evaluacion.jsp?step=1" class="bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white font-black px-5 py-2.5 rounded-xl text-xs uppercase tracking-[0.16em] transition-all shadow-lg active:scale-98 inline-flex items-center justify-center">
-                Importar paso a paso
+        <!-- ══════════ TOPBAR ══════════ -->
+        <div class="ie-topbar" style="display:flex; align-items:center; justify-content:flex-end; gap:16px; padding:16px 28px; background:#ffffff; border-bottom:1px solid #e5e8f5; flex-shrink:0;">
+            <!-- Botón empezar -->
+            <a href="evaluacion.jsp?step=1" class="ie-btn-start" id="db-start-btn" style="display:inline-flex; align-items:center; gap:8px; background:#5B50F0; color:#ffffff; font-size:0.85rem; font-weight:700; padding:10px 18px; border-radius:12px; text-decoration:none; transition:background 0.2s;">
+                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+                </svg>
+                Empezar importación
             </a>
-        </header>
-        
-        <jsp:include page="/fragments/breadcrumb.jsp" />
-
-        <div class="flex-1 overflow-y-auto p-8 space-y-6 custom-scrollbar pb-24">
-            <!-- Hero + Fast Links Row -->
-            <section class="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                <!-- Hero section -->
-                <div class="xl:col-span-2 hero-banner p-8 space-y-6 relative fade-up">
-                    <div class="space-y-3 relative z-10">
-                        <p class="text-[11px] font-black uppercase tracking-[0.24em] text-[var(--accent)]">No necesitas experiencia previa</p>
-                        <h2 class="text-3xl font-black tracking-tight text-[var(--text-primary)]">Hola, <%= com.importease.proyecto.service.HtmlUtil.escape(userNombre != null ? userNombre : "Manuel") %></h2>
-                        <p class="text-4xl font-black tracking-tight text-[var(--accent)] leading-tight">Importa con una ruta clara.</p>
-                        <p class="text-sm text-[var(--text-secondary)] font-semibold max-w-2xl">Dinos que producto quieres traer. ImportEase te explica el codigo aduanero, los permisos, los impuestos y los documentos en el orden correcto.</p>
-                    </div>
-
-                    <div id="heroCtaNoDraft" class="flex flex-col sm:flex-row gap-3 relative z-10">
-                        <a href="evaluacion.jsp?step=1" class="btn-primary px-8 py-4 text-sm font-black uppercase tracking-widest shadow-lg">Nueva importación</a>
-                    </div>
-                    <div id="heroCtaDraft" class="hidden flex flex-col sm:flex-row gap-3 relative z-10">
-                        <a href="evaluacion.jsp?step=1" class="btn-primary px-8 py-4 text-sm font-black uppercase tracking-widest shadow-lg">Continuar donde lo dejaste</a>
-                        <button onclick="borrarBorrador()" class="text-[var(--text-tertiary)] ml-4 hover:text-[var(--text-primary)] underline text-xs">Empezar de cero</button>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 relative z-10 border-t border-[var(--border)]">
-                        <div class="p-4 rounded-2xl bg-[var(--surface-2)] border border-[var(--border)]">
-                            <p class="text-[10px] font-black uppercase tracking-widest text-[var(--accent)]">Paso 1</p>
-                            <p class="text-xs font-bold text-[var(--text-secondary)] mt-1.5">Describe el producto con tus palabras.</p>
-                        </div>
-                        <div class="p-4 rounded-2xl bg-[var(--surface-2)] border border-[var(--border)]">
-                            <p class="text-[10px] font-black uppercase tracking-widest text-[var(--accent)]">Paso 2</p>
-                            <p class="text-xs font-bold text-[var(--text-secondary)] mt-1.5">El sistema traduce eso a codigo y permisos.</p>
-                        </div>
-                        <div class="p-4 rounded-2xl bg-[var(--surface-2)] border border-[var(--border)]">
-                            <p class="text-[10px] font-black uppercase tracking-widest text-[var(--accent)]">Paso 3</p>
-                            <p class="text-xs font-bold text-[var(--text-secondary)] mt-1.5">Revisa costos, documentos y siguiente accion.</p>
-                        </div>
-                    </div>
+            <!-- Notificaciones -->
+            <a href="seguimiento.jsp" class="ie-btn-notif" title="Notificaciones" id="db-notif-btn" style="display:flex; align-items:center; justify-content:center; width:40px; height:40px; border-radius:50%; color:#64748b; background:transparent; border:none; transition:background-color 0.2s;">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"/>
+                </svg>
+            </a>
+            <!-- Avatar -->
+            <div class="ie-avatar-wrap">
+                <div class="ie-avatar" id="ie-avatar-btn" style="display:flex; align-items:center; gap:8px; cursor:pointer; user-select:none; padding:4px; border-radius:50%;">
+                    <div class="ie-avatar-circle" style="width:40px; height:40px; border-radius:50%; background:#EEF0FB; color:#5B50F0; font-size:0.85rem; font-weight:800; display:flex; align-items:center; justify-content:center;"><%= com.importease.proyecto.service.HtmlUtil.escape(initials2) %></div>
+                    <svg class="ie-avatar-caret" width="14" height="14" fill="none" stroke="#64748b" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
                 </div>
+                <div class="ie-user-dd" id="ie-user-dd">
+                    <div class="ie-user-dd-header">
+                        <p><%= com.importease.proyecto.service.HtmlUtil.escape(userNombreDisplay) %></p>
+                        <p>Sesión activa</p>
+                    </div>
+                    <a href="evaluacion.jsp?step=1">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                        Nueva importación
+                    </a>
+                    <a href="seguimiento.jsp">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z"/></svg>
+                        Mis importaciones
+                    </a>
+                    <div class="dd-sep"></div>
+                    <button id="header-logout-btn">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"/></svg>
+                        Cerrar sesión
+                    </button>
+                </div>
+            </div>
+        </div>
 
-                <!-- Fast Links -->
-                <div class="card-shell fade-up" style="animation-delay: 100ms">
-                    <div class="card-shell__body space-y-4">
-                        <div>
-                            <p class="text-[11px] font-black uppercase tracking-[0.24em] text-[var(--accent)]">Accesos útiles</p>
-                            <h3 class="text-xl font-black text-[var(--text-primary)] mt-1">Enlaces rapidos</h3>
-                        </div>
-                        <a href="seguimiento.jsp" class="block p-4 rounded-2xl bg-[var(--surface-0)] border border-[var(--border)] hover:border-[var(--accent)] hover:bg-[var(--surface-2)] transition-all">
-                            <p class="text-sm font-black text-[var(--text-primary)]">Ver mis importaciones</p>
-                            <p class="text-xs text-[var(--text-secondary)] font-semibold mt-1">Revisa el estado de tus operaciones.</p>
+        <!-- ══════════ SCROLL ══════════ -->
+        <div class="ie-scroll custom-scrollbar">
+
+            <!-- ── HERO ── -->
+            <div class="ie-hero ie-anim-1">
+                <!-- Texto izquierda -->
+                <div style="flex: 1; min-w-0;">
+                    <div class="ie-hero-badge">👋 Bienvenido a ImportEase</div>
+                    <h1>Importa <span class="purple">paso a paso,</span><br>sin complicarte</h1>
+                    <p class="ie-hero-desc">Te guiamos en cada etapa para que tu primera importación sea fácil, segura y sin errores.</p>
+                    <div class="ie-hero-btns" style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom:0;">
+                        <a href="evaluacion.jsp?step=1" class="ie-btn-start" id="heroCta-noDraft" style="background:#5B50F0; padding:12px 24px; border-radius:12px; font-weight:700; font-size:0.9rem; text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
+                            Empezar mi importación
+                            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
                         </a>
-                        <a href="buscador.jsp" class="block p-4 rounded-2xl bg-[var(--surface-0)] border border-[var(--border)] hover:border-[var(--accent)] hover:bg-[var(--surface-2)] transition-all">
-                            <p class="text-sm font-black text-[var(--text-primary)]">Buscar codigo</p>
-                            <p class="text-xs text-[var(--text-secondary)] font-semibold mt-1">Busca como aduanas identifica tu producto.</p>
+                        <a href="evaluacion.jsp?step=1" class="ie-hero-btn-outline" id="heroCta-draft" style="background:#ffffff; border:1.5px solid #5B50F0; color:#5B50F0; padding:12px 24px; border-radius:12px; font-weight:700; font-size:0.9rem; text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
+                            Continuar proceso
+                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z"/></svg>
                         </a>
                     </div>
                 </div>
-            </section>
 
-            <!-- KPI Skeleton Loading -->
-            <div id="kpiSkeleton" class="kpi-grid grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                <div class="kpi-card skeleton animate-pulse h-24 rounded-2xl bg-[var(--surface-2)]"></div>
-                <div class="kpi-card skeleton animate-pulse h-24 rounded-2xl bg-[var(--surface-2)]"></div>
-                <div class="kpi-card skeleton animate-pulse h-24 rounded-2xl bg-[var(--surface-2)]"></div>
-                <div class="kpi-card skeleton animate-pulse h-24 rounded-2xl bg-[var(--surface-2)]"></div>
+                <!-- Ilustración barco + globo -->
+                <div class="ie-hero-ship">
+                    <img src="css/hero_ship.png" alt="Barco de importación con globo terráqueo">
+                </div>
+
+                <!-- Tarjeta de progreso -->
+                <div class="ie-progress-card">
+                    <p class="ie-progress-card-label">Tu progreso</p>
+                    <div class="ie-progress-pct" id="ie-prog-pct">0%</div>
+                    <div class="ie-progress-bar-wrap">
+                        <div class="ie-progress-bar-fill" id="ie-prog-bar" style="width:0%"></div>
+                    </div>
+                    <span class="ie-progress-note" id="ie-prog-note">Aún no has iniciado</span>
+                </div>
             </div>
 
-            <!-- KPI Cards -->
-            <section class="kpi-grid stagger-children">
-                <div class="kpi-card">
-                    <div class="kpi-card__header">
-                        <div>
-                            <p class="kpi-card__label">Operaciones</p>
-                            <span id="kpi-operaciones-badge" class="kpi-card__value kpi-card__value--accent">0</span>
+            <!-- ── GRID INFERIOR ── -->
+            <div class="ie-grid-bottom">
+
+                <!-- COLUMNA IZQUIERDA: pasos + banner -->
+                <div class="ie-anim-2">
+                    <!-- Título sección -->
+                    <div class="ie-steps-section-title" style="display:flex; align-items:center; gap:8px; font-size:0.8rem; font-weight:700; color:#5B50F0; text-transform:uppercase; letter-spacing:0.07em; margin-bottom:12px;">
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24" style="color: #5B50F0;">
+                            <path d="M12 2l2.4 7.2 7.2 2.4-7.2 2.4-2.4 7.2-2.4-7.2-7.2-2.4 7.2-2.4z"/>
+                        </svg>
+                        Así importas con ImportEase
+                    </div>
+
+                    <!-- Tarjeta de 3 pasos -->
+                    <div class="ie-steps-card">
+                        <div class="ie-steps-row">
+
+                            <!-- PASO 1 -->
+                            <a href="evaluacion.jsp?step=1" class="ie-step" id="step-card-1">
+                                <div class="ie-step-num">1</div>
+                                <div class="ie-step-icon-wrap">
+                                    <!-- Ícono: laptop con descripción de producto -->
+                                    <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" width="80" height="80">
+                                        <circle cx="40" cy="40" r="36" fill="#EEF0FB"/>
+                                        <!-- Monitor -->
+                                        <rect x="18" y="22" width="44" height="28" rx="4" fill="#fff" stroke="#C4BFEE" stroke-width="1.5"/>
+                                        <rect x="20" y="24" width="40" height="24" rx="3" fill="#F0EEFF"/>
+                                        <!-- Líneas de texto -->
+                                        <rect x="25" y="29" width="22" height="3" rx="1.5" fill="#5B50F0"/>
+                                        <rect x="25" y="35" width="16" height="2.5" rx="1.25" fill="#A78BFA"/>
+                                        <rect x="25" y="40" width="18" height="2.5" rx="1.25" fill="#C4B5FD"/>
+                                        <!-- Bolsa de compras -->
+                                        <rect x="46" y="27" width="11" height="13" rx="2" fill="#fff" stroke="#5B50F0" stroke-width="1.2"/>
+                                        <path d="M49 30 Q51 27 54 30" stroke="#5B50F0" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+                                        <rect x="48" y="32" width="7" height="1.5" rx=".75" fill="#A78BFA"/>
+                                        <!-- Base monitor -->
+                                        <rect x="35" y="50" width="10" height="3" rx="1" fill="#C4BFEE"/>
+                                        <rect x="29" y="52" width="22" height="2.5" rx="1.25" fill="#C4BFEE"/>
+                                    </svg>
+                                </div>
+                                <h4>Describe tu producto</h4>
+                                <p>Cuéntanos qué importarás.<br>Entre más detalles, mejor.</p>
+                                <span class="ie-step-badge" id="step1-badge"><span class="ie-step-badge-dot"></span>Pendiente</span>
+                            </a>
+
+                            <!-- Flecha 1 -->
+                            <div class="ie-step-arrow" style="width:32px; height:32px; border-radius:50%; background:#ffffff; border:1px solid #e5e8f5; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin:0 4px;">
+                                <svg width="16" height="16" fill="none" stroke="#94a3b8" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12h15m0 0l-6.75-6.75M19.5 12l-6.75 6.75"/></svg>
+                            </div>
+
+                            <!-- PASO 2 -->
+                            <a href="buscador.jsp" class="ie-step" id="step-card-2">
+                                <div class="ie-step-num">2</div>
+                                <div class="ie-step-icon-wrap">
+                                    <!-- Ícono: lupa con código de barras -->
+                                    <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" width="80" height="80">
+                                        <circle cx="40" cy="40" r="36" fill="#EEF0FB"/>
+                                        <!-- Lupa -->
+                                        <circle cx="36" cy="36" r="14" stroke="#1a1d2e" stroke-width="2.5" fill="#fff"/>
+                                        <line x1="46" y1="46" x2="56" y2="56" stroke="#1a1d2e" stroke-width="3" stroke-linecap="round"/>
+                                        <!-- Barras de código dentro de la lupa -->
+                                        <rect x="28" y="30" width="2.5" height="12" rx="1" fill="#5B50F0"/>
+                                        <rect x="32" y="30" width="1.5" height="12" rx=".75" fill="#5B50F0"/>
+                                        <rect x="35" y="30" width="3" height="12" rx="1" fill="#5B50F0"/>
+                                        <rect x="40" y="30" width="1.5" height="12" rx=".75" fill="#5B50F0"/>
+                                        <rect x="43" y="30" width="2" height="12" rx="1" fill="#5B50F0"/>
+                                        <!-- Badge check azul -->
+                                        <circle cx="54" cy="28" r="9" fill="#3B82F6"/>
+                                        <path d="M50 28l3 3 6-6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </div>
+                                <h4>Revisa código y permisos</h4>
+                                <p>Encontramos tu HS Code y validamos si necesitas permisos.</p>
+                                <span class="ie-step-badge" id="step2-badge"><span class="ie-step-badge-dot"></span>Pendiente</span>
+                            </a>
+
+                            <!-- Flecha 2 -->
+                            <div class="ie-step-arrow" style="width:32px; height:32px; border-radius:50%; background:#ffffff; border:1px solid #e5e8f5; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin:0 4px;">
+                                <svg width="16" height="16" fill="none" stroke="#94a3b8" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12h15m0 0l-6.75-6.75M19.5 12l-6.75 6.75"/></svg>
+                            </div>
+
+                            <!-- PASO 3 -->
+                            <a href="calculadora-negocio.jsp" class="ie-step" id="step-card-3">
+                                <div class="ie-step-num">3</div>
+                                <div class="ie-step-icon-wrap">
+                                    <!-- Ícono: clipboard + calculadora -->
+                                    <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" width="80" height="80">
+                                        <circle cx="40" cy="40" r="36" fill="#EEF0FB"/>
+                                        <!-- Clipboard -->
+                                        <rect x="20" y="22" width="28" height="36" rx="4" fill="#fff" stroke="#C4BFEE" stroke-width="1.5"/>
+                                        <!-- Clip en la parte superior -->
+                                        <rect x="28" y="18" width="12" height="7" rx="3" fill="#5B50F0"/>
+                                        <!-- Checkboxes -->
+                                        <rect x="25" y="30" width="5" height="5" rx="1.5" fill="#EEF0FB" stroke="#5B50F0" stroke-width="1.2"/>
+                                        <path d="M26 32.5l1.5 1.5 2.5-2.5" stroke="#5B50F0" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <rect x="33" y="31" width="12" height="2" rx="1" fill="#C4B5FD"/>
+                                        <rect x="25" y="38" width="5" height="5" rx="1.5" fill="#EEF0FB" stroke="#5B50F0" stroke-width="1.2"/>
+                                        <path d="M26 40.5l1.5 1.5 2.5-2.5" stroke="#5B50F0" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <rect x="33" y="39" width="10" height="2" rx="1" fill="#C4B5FD"/>
+                                        <rect x="25" y="46" width="5" height="5" rx="1.5" fill="#EEF0FB" stroke="#C4BFEE" stroke-width="1.2"/>
+                                        <rect x="33" y="47" width="8" height="2" rx="1" fill="#E0D9FF"/>
+                                        <!-- Calculadora pequeña -->
+                                        <rect x="48" y="36" width="16" height="20" rx="3" fill="#5B50F0"/>
+                                        <rect x="50" y="38" width="12" height="5" rx="1.5" fill="#fff" opacity=".3"/>
+                                        <rect x="51" y="45" width="3" height="3" rx="1" fill="#fff" opacity=".6"/>
+                                        <rect x="56" y="45" width="3" height="3" rx="1" fill="#fff" opacity=".6"/>
+                                        <rect x="51" y="50" width="3" height="3" rx="1" fill="#fff" opacity=".6"/>
+                                        <rect x="56" y="50" width="3" height="3" rx="1" fill="#fff" opacity=".6"/>
+                                    </svg>
+                                </div>
+                                <h4>Calcula costos y prepara documentos</h4>
+                                <p>Estimamos tus costos y te decimos qué documentos necesitas.</p>
+                                <span class="ie-step-badge" id="step3-badge"><span class="ie-step-badge-dot"></span>Pendiente</span>
+                            </a>
                         </div>
-                        <div class="kpi-card__icon kpi-card__icon--accent">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75z"/>
+                    </div>
+
+                    <!-- Banner info con persona -->
+                    <a href="seguimiento.jsp" class="ie-info-banner">
+                        <div class="ie-info-icon">
+                            <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"/>
                             </svg>
                         </div>
-                    </div>
-                    <div class="kpi-card__bar kpi-card__bar--accent"></div>
-                    <a href="seguimiento.jsp" class="kpi-card__action">Ver todas →</a>
+                        <div class="ie-info-content">
+                            <h5>Vamos contigo en cada paso</h5>
+                            <p>Nuestro sistema revisa la información, te alerta si algo falta y te guía hasta completar tu importación.</p>
+                        </div>
+                        <div class="ie-info-check">
+                            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+                        </div>
+                        <img src="css/person_laptop.png" alt="Persona con laptop" class="ie-info-person">
+                    </a>
                 </div>
 
-                <div class="kpi-card">
-                    <div class="kpi-card__header">
-                        <div>
-                            <p class="kpi-card__label">FOB Total</p>
-                            <span id="kpi-fob" class="kpi-card__value">$ --</span>
+                <!-- COLUMNA DERECHA: siguiente paso + ayuda -->
+                <div class="ie-aside ie-anim-3">
+
+                    <!-- Tarjeta siguiente paso -->
+                    <div class="ie-next-card">
+                        <div class="ie-next-head">
+                            <div class="ie-next-icon">
+                                <svg width="22" height="22" fill="none" stroke="#fff" stroke-width="2.2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
+                                </svg>
+                            </div>
+                            <div style="flex:1;">
+                                <h3>Tu siguiente paso 👣</h3>
+                                <p>Para comenzar, busquemos el código (HS Code) de tu producto. Con esto sabremos requisitos y permisos.</p>
+                            </div>
                         </div>
-                        <div class="kpi-card__icon kpi-card__icon--info">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33"/>
-                            </svg>
-                        </div>
+                        <a href="buscador.jsp" class="ie-btn-search" id="ie-next-action-btn">
+                            <span class="ie-btn-search-lft">
+                                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
+                                </svg>
+                                Buscar mi código
+                            </span>
+                            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                        </a>
                     </div>
-                    <div class="kpi-card__bar kpi-card__bar--info"></div>
-                    <span class="kpi-card__footer">Valor acumulado</span>
-                </div>
 
-                <div class="kpi-card">
-                    <div class="kpi-card__header">
-                        <div>
-                            <p class="kpi-card__label">Tributos</p>
-                            <span id="kpi-tributos" class="kpi-card__value kpi-card__value--accent">S/ --</span>
+                    <!-- Tarjeta Ayuda rápida -->
+                    <div class="ie-help-card">
+                        <div class="ie-help-title">
+                            <h4>Ayuda rápida</h4>
+                            <span class="ie-help-q-btn">
+                                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z"/></svg>
+                            </span>
                         </div>
-                        <div class="kpi-card__icon kpi-card__icon--accent">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.375m0-10.5h3.375c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125H9.75"/>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="kpi-card__bar kpi-card__bar--accent"></div>
-                    <a href="calculadora-negocio.jsp" class="kpi-card__action">Calcular →</a>
-                </div>
 
-                <div class="kpi-card">
-                    <div class="kpi-card__header">
-                        <div>
-                            <p class="kpi-card__label">Restringidos</p>
-                            <span id="kpi-permisos-badge" class="kpi-card__value kpi-card__value--danger">0</span>
-                        </div>
-                        <div class="kpi-card__icon kpi-card__icon--danger">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="kpi-card__bar kpi-card__bar--danger"></div>
-                    <a href="gestor_permisos.jsp" class="kpi-card__action">Ver permisos</a>
-                </div>
-
-                <div class="kpi-card">
-                    <div class="kpi-card__header">
-                        <div>
-                            <p class="kpi-card__label">T/C Hoy</p>
-                            <span id="kpi-tc" class="kpi-card__value kpi-card__value--success">S/ --</span>
-                        </div>
-                        <div class="kpi-card__icon kpi-card__icon--success">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z"/>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="kpi-card__bar kpi-card__bar--success"></div>
-                    <span id="kpi-tc-fuente" class="kpi-card__footer">BCRP</span>
-                </div>
-
-                <div class="kpi-card">
-                    <div class="kpi-card__header">
-                        <div>
-                            <p class="kpi-card__label">Plazos activos</p>
-                            <span id="kpi-plazos" class="kpi-card__value kpi-card__value--warning">0</span>
-                        </div>
-                        <div class="kpi-card__icon kpi-card__icon--warning">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="kpi-card__bar kpi-card__bar--warning"></div>
-                    <a href="expediente-aduanero.jsp" class="kpi-card__action">Ver revision</a>
-                </div>
-            </section>
-
-            <!-- Row 2: Canales + Top HS + Estado -->
-            <section class="grid grid-cols-1 lg:grid-cols-3 gap-6 stagger-children">
-                <!-- Distribución de Canales -->
-                <div class="card-shell">
-                    <div class="card-shell__body">
-                        <h3 class="section-title">Distribución de canales</h3>
-                        <div class="flex items-center justify-center" style="height: 180px;">
-                            <canvas id="chartCanales" width="180" height="180"></canvas>
-                        </div>
-                        <div id="canalLegend" class="flex flex-wrap gap-2 mt-4 justify-center text-[10px] font-bold"></div>
-                    </div>
-                </div>
-
-                <!-- Top 5 Subpartidas -->
-                <div class="card-shell">
-                    <div class="card-shell__body">
-                        <h3 class="section-title">Productos mas revisados</h3>
-                        <div id="topHsContainer" class="space-y-3">
-                            <p class="text-xs text-[var(--text-tertiary)] text-center py-6">Sin datos aún</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Operaciones por Estado -->
-                <div class="card-shell">
-                    <div class="card-shell__body">
-                        <h3 class="section-title">Operaciones por estado</h3>
-                        <div id="estadoContainer" class="space-y-3">
-                            <p class="text-xs text-[var(--text-tertiary)] text-center py-6">Sin datos aún</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Row 3: Siguiente paso + Últimas operaciones -->
-            <section class="grid grid-cols-1 lg:grid-cols-5 gap-6 stagger-children">
-                <!-- Recommended Next Step -->
-                <div class="lg:col-span-3 card-shell">
-                    <div class="card-shell__body flex flex-col justify-between h-full">
-                        <div>
-                            <h3 class="section-title">Siguiente paso recomendado</h3>
-
-                            <div id="pendientesListContainer" class="divide-y divide-[var(--border)]/50 space-y-4">
-                                <p class="text-xs text-[var(--text-tertiary)] font-medium py-6 text-center">Cargando tus tareas pendientes...</p>
+                        <!-- FAQ 1 -->
+                        <div class="ie-faq">
+                            <button class="ie-faq-trigger" aria-expanded="false" type="button">
+                                <div class="ie-faq-left">
+                                    <svg class="ie-faq-ico" style="color:#5B50F0;" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581a2.25 2.25 0 003.182 0l4.318-4.318a2.25 2.25 0 000-3.182L11.16 3.659A2.25 2.25 0 009.568 3zM6 6h.008v.008H6V6z"/></svg>
+                                    <span class="ie-faq-label">¿Qué es un HS Code?</span>
+                                </div>
+                                <svg class="ie-faq-chevron" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
+                            </button>
+                            <div class="ie-faq-body">
+                                Número de 6-10 dígitos que identifica tu producto en aduana. Con él se determinan aranceles, permisos y documentos.<br>
+                                <a href="buscador.jsp" style="color:#5B50F0; font-weight:600; text-decoration:none; margin-top:4px; display:inline-block;">Buscar mi código →</a>
                             </div>
                         </div>
 
-                        <div class="mt-6 border-t border-[var(--border)] pt-6">
-                            <h3 class="section-title">Alertas importantes</h3>
-                            <div id="alertasListContainer" class="space-y-3">
-                                <p class="text-xs text-[var(--text-tertiary)] font-medium py-4 text-center">Cargando alertas críticas...</p>
+                        <!-- FAQ 2 -->
+                        <div class="ie-faq">
+                            <button class="ie-faq-trigger" aria-expanded="false" type="button">
+                                <div class="ie-faq-left">
+                                    <svg class="ie-faq-ico" style="color:#5B50F0;" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/></svg>
+                                    <span class="ie-faq-label">¿Necesito permisos?</span>
+                                </div>
+                                <svg class="ie-faq-chevron" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
+                            </button>
+                            <div class="ie-faq-body">
+                                Depende del producto. Alimentos, medicamentos y electrónicos pueden requerir autorización de DIGESA, DIGEMID, MTC o SENASA.<br>
+                                <a href="gestor_permisos.jsp" style="color:#5B50F0; font-weight:600; text-decoration:none; margin-top:4px; display:inline-block;">Ver gestor de permisos →</a>
                             </div>
                         </div>
 
-                        <div class="mt-6 p-4 rounded-xl bg-[var(--surface-0)] border border-[var(--border)] flex items-center gap-3">
-                            <span class="w-7 h-7 rounded-full bg-[var(--accent-soft)] border border-[var(--accent-glow)] text-[var(--accent)] flex items-center justify-center font-black text-xs shrink-0">i</span>
-                            <p class="text-[10px] text-[var(--text-secondary)] font-semibold leading-relaxed">
-                                <strong>Consejo:</strong> Si no sabes por donde empezar, usa <a href="evaluacion.jsp?step=1" class="text-[var(--accent)] font-bold hover:underline">Importar paso a paso</a>. El sistema te dira que dato falta, que significa y cual es la siguiente accion.
-                            </p>
+                        <!-- FAQ 3 -->
+                        <div class="ie-faq">
+                            <button class="ie-faq-trigger" aria-expanded="false" type="button">
+                                <div class="ie-faq-left">
+                                    <svg class="ie-faq-ico" style="color:#5B50F0;" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
+                                    <span class="ie-faq-label">¿Qué documentos me pedirán?</span>
+                                </div>
+                                <svg class="ie-faq-chevron" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
+                            </button>
+                            <div class="ie-faq-body">
+                                Factura comercial, Packing list, Bill of Lading/AWB, Certificado de origen y DUA. El sistema te indica cuáles aplican.<br>
+                                <a href="documentos.jsp" style="color:#5B50F0; font-weight:600; text-decoration:none; margin-top:4px; display:inline-block;">Ver expediente →</a>
+                            </div>
                         </div>
+
                     </div>
-                </div>
 
-                <!-- Last Operations -->
-                <div class="lg:col-span-2 card-shell">
-                    <div class="card-shell__body flex flex-col justify-between h-full">
-                        <div>
-                            <div class="flex justify-between items-center mb-4">
-                                <h3 class="section-title mb-0">Últimas operaciones</h3>
-                                <a href="seguimiento.jsp" class="kpi-card__action">Ver todas</a>
-                            </div>
+                </div><!-- fin aside -->
+            </div><!-- fin ie-grid-bottom -->
 
-                            <div class="table-container">
-                                <table class="table-custom text-[11px]">
-                                    <thead>
-                                        <tr>
-                                            <th>Producto</th>
-                                            <th>Canal</th>
-                                            <th class="text-center">Estado</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="recentActivityTableBody" class="font-semibold text-[var(--text-secondary)]">
-                                        <tr>
-                                            <td colspan="3" class="text-center text-[var(--text-tertiary)] font-medium">Cargando actividad reciente...</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-        </div>
+        </div><!-- fin ie-scroll -->
     </main>
 
-    <script nonce="<%= request.getAttribute("csp_nonce") %>">
-        window.ctx = '<%= request.getContextPath() %>';
-
-        function escapeHtml(value) {
-            if (value === null || value === undefined) return '';
-            return value.toString()
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/\"/g, '&quot;')
-                .replace(/'/g, '&#039;');
-        }
-
-        function iniciarNuevaRuta(event) {
-            if (event) event.preventDefault();
-            window.location.href = 'evaluacion.jsp?step=1';
-        }
-
-        function borrarBorrador() {
-            localStorage.removeItem('importease_wizard_draft');
-            document.getElementById('draftAlert').classList.add('hidden');
-            actualizarHeroCta();
-        }
-
-        function actualizarHeroCta() {
-            const noDraft = document.getElementById('heroCtaNoDraft');
-            const draft = document.getElementById('heroCtaDraft');
-            if (!noDraft || !draft) return;
-            if (localStorage.getItem('importease_wizard_draft')) {
-                noDraft.classList.add('hidden');
-                draft.classList.remove('hidden');
-            } else {
-                noDraft.classList.remove('hidden');
-                draft.classList.add('hidden');
-            }
-        }
-
-        async function fetchWithTimeout(url, options = {}, timeoutMs = 3500) {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-            try {
-                return await fetch(url, { ...options, signal: controller.signal });
-            } finally {
-                clearTimeout(timeoutId);
-            }
-        }
-
-        function hideDashboardSkeleton() {
-            const skeleton = document.getElementById('kpiSkeleton');
-            if (skeleton) skeleton.classList.add('hidden');
-        }
-
-        async function loadDashboardStats() {
-            try {
-                const res = await fetchWithTimeout(`${window.ctx}/api/dashboard/stats`, {}, 3500);
-                if (res.ok) {
-                    const stats = await res.json();
-
-                    hideDashboardSkeleton();
-
-                    const operationsBadge = document.getElementById('kpi-operaciones-badge');
-                    if (operationsBadge) operationsBadge.innerText = stats.totalOps || 0;
-
-                    const permisosBadge = document.getElementById('kpi-permisos-badge');
-                    if (permisosBadge) permisosBadge.innerText = stats.restringidos || 0;
-
-                    // FOB total
-                    const fobKpi = document.getElementById('kpi-fob');
-                    if (fobKpi) fobKpi.innerText = `$ ${Number(stats.fobTotal || 0).toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0})}`;
-
-                    // Tributos
-                    const tributosKpi = document.getElementById('kpi-tributos');
-                    if (tributosKpi) tributosKpi.innerText = `S/ ${Number(stats.tributosTotal || 0).toLocaleString('es-PE', {minimumFractionDigits: 0, maximumFractionDigits: 0})}`;
-
-                    // Tipo de cambio
-                    const tcKpi = document.getElementById('kpi-tc');
-                    const tcFuente = document.getElementById('kpi-tc-fuente');
-                    if (stats.tipoCambio && tcKpi) {
-                        tcKpi.innerText = `S/ ${Number(stats.tipoCambio.tipoCambio || 3.75).toFixed(3)}`;
-                        if (tcFuente) tcFuente.innerText = stats.tipoCambio.fuente || 'BCRP';
-                    }
-
-                    // Plazos activos
-                    const plazosKpi = document.getElementById('kpi-plazos');
-                    if (plazosKpi) plazosKpi.innerText = stats.plazosActivos || 0;
-
-                    // Gráfico de canales
-                    renderCanalChart(stats.porCanal || {});
-
-                    // Top HS Codes
-                    renderTopHs(stats.topHsCodes || []);
-
-                    // Operaciones por estado
-                    renderEstados(stats.porEstado || {});
-
-                    // Alertas Críticas
-                    renderAlertasCriticas(stats.alertasCriticas || []);
-                }
-            } catch (e) {
-                console.error('Error al cargar estadisticas del panel', e);
-                hideDashboardSkeleton();
-                renderAlertasCriticas([]);
-            }
-        }
-
-        function renderAlertasCriticas(alertas) {
-            const container = document.getElementById('alertasListContainer');
-            if (!container) return;
-
-            if (!alertas || !alertas.length) {
-                container.innerHTML = `<p class="text-xs text-[var(--text-tertiary)] font-medium text-center py-4">No hay alertas activas</p>`;
-                return;
-            }
-
-            container.innerHTML = alertas.map(alert => {
-                let toneClass = 'bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-950/20 dark:text-blue-400 dark:border-blue-950/45';
-                let icon = 'ℹ️';
-                if (alert.tipo === 'CRITICAL') {
-                    toneClass = 'bg-rose-50 text-rose-700 border-rose-100 dark:bg-rose-950/20 dark:text-rose-400 dark:border-rose-950/45';
-                    icon = '🚨';
-                } else if (alert.tipo === 'WARNING') {
-                    toneClass = 'bg-amber-50 text-amber-700 border-amber-100 dark:bg-amber-950/20 dark:text-amber-400 dark:border-amber-950/45';
-                    icon = '⚠️';
-                }
-
-                return `
-                    <div class="p-4 rounded-2xl border ${toneClass} flex items-start gap-3">
-                        <span class="text-lg shrink-0">${icon}</span>
-                        <div class="min-w-0 flex-1">
-                            <h5 class="text-xs font-black uppercase tracking-wider">${escapeHtml(alert.titulo)}</h5>
-                            <p class="text-[11px] font-semibold mt-0.5 leading-relaxed">${escapeHtml(alert.mensaje)}</p>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function renderCanalChart(porCanal) {
-            const canvas = document.getElementById('chartCanales');
-            if (!canvas) return;
-            const labels = Object.keys(porCanal);
-            const values = Object.values(porCanal);
-            const colors = { 'VERDE': '#22c55e', 'NARANJA': '#f97316', 'ROJO': '#ef4444', 'SIN CANAL': '#9ca3af' };
-            const bgColors = labels.map(l => colors[l] || '#6366f1');
-
-            if (labels.length === 0) {
-                canvas.parentElement.innerHTML = '<p class="text-xs text-[var(--text-tertiary)] text-center">Sin datos de canal</p>';
-                return;
-            }
-
-            if (typeof Chart === 'undefined') {
-                canvas.parentElement.innerHTML = labels.map((l, i) => `
-                    <div class="w-full flex items-center justify-between px-4 py-2 rounded-xl bg-[var(--surface-0)] border border-[var(--border)]">
-                        <span class="flex items-center gap-2 text-[11px] font-black uppercase">
-                            <span class="w-2 h-2 rounded-full" style="background:${bgColors[i]}"></span>${escapeHtml(l)}
-                        </span>
-                        <span class="text-sm font-black">${values[i]}</span>
-                    </div>
-                `).join('');
-                return;
-            }
-
-            new Chart(canvas, {
-                type: 'doughnut',
-                data: { labels, datasets: [{ data: values, backgroundColor: bgColors, borderWidth: 0 }] },
-                options: { responsive: false, plugins: { legend: { display: false } }, cutout: '65%' }
-            });
-
-            const legend = document.getElementById('canalLegend');
-            if (legend) {
-                legend.innerHTML = labels.map((l, i) => `<span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full" style="background:${bgColors[i]}"></span>${l}: ${values[i]}</span>`).join('');
-            }
-        }
-
-        function renderTopHs(list) {
-            const container = document.getElementById('topHsContainer');
-            if (!container || !list.length) return;
-            container.innerHTML = list.map((item, i) => `
-                <div class="flex items-center gap-3 p-3 rounded-xl bg-[var(--surface-0)] border border-[var(--border)]">
-                    <span class="w-7 h-7 rounded-lg bg-[var(--accent-soft)] text-[var(--accent)] flex items-center justify-center text-[10px] font-black shrink-0">${i + 1}</span>
-                    <div class="min-w-0 flex-1">
-                        <p class="text-[10px] font-black text-[var(--accent)] tracking-wider">${escapeHtml(item.hsCode)}</p>
-                        <p class="text-[11px] font-semibold text-[var(--text-secondary)] truncate">${escapeHtml(item.descripcion || 'Sin descripción')}</p>
-                    </div>
-                    <span class="text-xs font-black text-[var(--text-primary)]">${item.usos}x</span>
-                </div>
-            `).join('');
-        }
-
-        function renderEstados(porEstado) {
-            const container = document.getElementById('estadoContainer');
-            if (!container || !Object.keys(porEstado).length) return;
-            const stateColors = { 'COTIZACION': 'bg-gray-100 text-gray-700', 'TRAMITE': 'bg-blue-50 text-blue-700', 'NACIONALIZADA': 'bg-emerald-50 text-emerald-700', 'PENDIENTE_DOCS': 'bg-rose-50 text-rose-700', 'LISTA_DESPACHO': 'bg-amber-50 text-amber-700' };
-            container.innerHTML = Object.entries(porEstado).map(([estado, count]) => {
-                const cls = stateColors[estado] || 'bg-[var(--surface-2)] text-[var(--text-secondary)]';
-                return `<div class="flex items-center justify-between p-3 rounded-xl ${cls} border border-current/10">
-                    <span class="text-[11px] font-black uppercase tracking-wider">${escapeHtml(estado)}</span>
-                    <span class="text-lg font-black">${count}</span>
-                </div>`;
-            }).join('');
-        }
-
-        async function loadKanban() {
-            try {
-                const res = await fetchWithTimeout(`${window.ctx}/api/importacion/listar`, {}, 3500);
-                const data = await res.json();
-                renderRecentTable(data);
-                renderPendientesList(data);
-            } catch (e) {
-                console.error('Error al cargar listado', e);
-                renderRecentTable([]);
-                renderPendientesList([]);
-            }
-        }
-
-        function getProductTag(hsCode, desc) {
-            const d = (desc || '').toLowerCase();
-            const code = hsCode || '';
-            if (code.startsWith('8517') || d.includes('celular') || d.includes('phone')) return 'TEL';
-            if (code.startsWith('2106') || code.startsWith('1901') || d.includes('suplemento') || d.includes('alimento')) return 'FOOD';
-            if (d.includes('laptop') || d.includes('computadora') || d.includes('pc')) return 'IT';
-            if (code.startsWith('3004') || d.includes('medicina')) return 'SAL';
-            if (code.startsWith('3304') || d.includes('cosmetico') || d.includes('perfume')) return 'COS';
-            return 'BOX';
-        }
-
-        function renderPendientesList(list) {
-            const container = document.getElementById('pendientesListContainer');
-            if (!container) return;
-
-            const activeOps = list.filter(imp => imp.estado !== 'NACIONALIZADA');
-            activeOps.sort((a, b) => {
-                const priority = { 'PENDIENTE_DOCS': 1, 'BORRADOR': 2, 'COTIZACION': 2, 'LISTA_DESPACHO': 3 };
-                return (priority[a.estado] || 4) - (priority[b.estado] || 4);
-            });
-
-            const displayList = activeOps.slice(0, 3);
-
-            if (displayList.length === 0) {
-                container.innerHTML = `
-                    <div class="flex flex-col items-center justify-center py-8 opacity-70 text-center gap-2">
-                        <div class="w-10 h-10 rounded-2xl bg-[var(--accent-soft)] border border-[var(--accent-glow)] text-[var(--accent)] flex items-center justify-center font-black">OK</div>
-                        <p class="text-xs font-bold text-[var(--accent)] uppercase tracking-wider">No tienes pendientes</p>
-                        <p class="text-[10px] text-[var(--text-tertiary)] font-medium">Cuando registres evaluaciones, aquí verás los siguientes pasos más urgentes.</p>
-                    </div>
-                `;
-                return;
-            }
-
-            container.innerHTML = '';
-            displayList.forEach((imp, index) => {
-                const safeProducto = escapeHtml(imp.productoDesc || 'Mercancía general');
-                const tag = getProductTag(imp.hsCode, imp.productoDesc);
-
-                let stateText = 'Completa datos base de la operación';
-                let actionBtn = 'Continuar';
-                let actionClick = "window.location.href='evaluacion.jsp'";
-                let toneClass = 'bg-[var(--accent-soft)] text-[var(--accent)]';
-
-                if (imp.estado === 'PENDIENTE_DOCS') {
-                    stateText = 'Faltan documentos comerciales';
-                    actionBtn = 'Subir docs';
-                    actionClick = "window.location.href='documentos.jsp'";
-                    toneClass = 'bg-rose-50 text-rose-600 dark:bg-rose-950/20 dark:text-rose-400';
-                } else if (imp.estado === 'LISTA_DESPACHO') {
-                    stateText = 'Lista para pasar a seguimiento';
-                    actionBtn = 'Ver avance';
-                    actionClick = "window.location.href='seguimiento.jsp'";
-                    toneClass = 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20 dark:text-emerald-400';
-                }
-
-                const ptClass = index === 0 ? 'pt-2' : 'pt-4';
-                const pbClass = index === displayList.length - 1 ? 'pb-2' : '';
-
-                const itemDiv = document.createElement('div');
-                itemDiv.className = `flex items-center justify-between ${ptClass} ${pbClass} transition-all duration-300 gap-4`;
-                itemDiv.innerHTML = `
-                    <div class="flex items-center gap-3 min-w-0">
-                        <div class="w-10 h-10 rounded-xl ${toneClass} flex items-center justify-center text-[10px] font-black shrink-0 border border-current/10">${tag}</div>
-                        <div class="min-w-0">
-                            <h5 class="text-sm font-bold text-[var(--text-primary)] truncate">${safeProducto}</h5>
-                            <p class="text-[11px] text-[var(--text-tertiary)] font-semibold mt-0.5">${stateText}</p>
-                        </div>
-                    </div>
-                    <button onclick="${actionClick}" class="bg-[var(--surface-1)] hover:bg-[var(--surface-2)] border border-[var(--border)] text-[var(--text-primary)] text-[10px] font-black px-4 py-2 rounded-lg uppercase tracking-wider transition-all shrink-0">
-                        ${actionBtn}
-                    </button>
-                `;
-                container.appendChild(itemDiv);
-            });
-        }
-
-        function renderRecentTable(list) {
-            const tbody = document.getElementById('recentActivityTableBody');
-            if (!tbody) return;
-            tbody.innerHTML = '';
-
-            list.sort((a, b) => b.id - a.id);
-            const recentList = list.slice(0, 4);
-
-            if (recentList.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="3" class="p-6 text-center text-[var(--text-tertiary)] font-medium">No hay actividad registrada.</td></tr>`;
-                return;
-            }
-
-            recentList.forEach(imp => {
-                let stateLabel = 'Listo';
-                let stateClass = 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-950/45';
-
-                if (imp.estado === 'BORRADOR' || imp.estado === 'COTIZACION') {
-                    stateLabel = 'Borrador';
-                    stateClass = 'text-[var(--text-secondary)] bg-[var(--surface-2)] border-[var(--border)]';
-                } else if (imp.estado === 'PENDIENTE_DOCS') {
-                    stateLabel = 'Expediente';
-                    stateClass = 'text-blue-600 bg-blue-50 border-blue-200 dark:bg-blue-950/20 dark:text-blue-400 dark:border-blue-950/45';
-                } else if (imp.hsCode && (imp.hsCode.startsWith('8517') || imp.hsCode.startsWith('2106') || imp.hsCode.startsWith('9018'))) {
-                    stateLabel = 'Permiso';
-                    stateClass = 'text-orange-600 bg-orange-50 border-orange-200 dark:bg-orange-950/20 dark:text-orange-400 dark:border-orange-950/45';
-                }
-
-                let entity = '--';
-                if (imp.hsCode) {
-                    if (imp.hsCode.startsWith('8517')) entity = 'MTC';
-                    else if (imp.hsCode.startsWith('2106')) entity = 'DIGESA';
-                    else if (imp.hsCode.startsWith('9018')) entity = 'DIGEMID';
-                    else if (imp.hsCode.startsWith('1209')) entity = 'SENASA';
-                    else if (imp.hsCode.startsWith('4407')) entity = 'SERFOR';
-                }
-
-                const safeProducto = escapeHtml(imp.productoDesc || 'Evaluacion');
-                const canal = escapeHtml(imp.canalAsignado || '--');
-                const canalClass = imp.canalAsignado === 'VERDE' ? 'text-emerald-600' : imp.canalAsignado === 'ROJO' ? 'text-rose-600' : 'text-orange-500';
-                const tr = document.createElement('tr');
-                tr.className = 'hover:bg-[var(--surface-2)] transition-colors border-b border-[var(--border)]';
-                tr.innerHTML = `
-                    <td class="p-3">
-                        <span class="font-bold text-[var(--text-primary)] block truncate max-w-[150px]">${safeProducto}</span>
-                        <span class="text-[8px] text-[var(--text-tertiary)] font-bold uppercase block mt-0.5">OP-${imp.id.toString().padStart(5, '0')}</span>
-                    </td>
-                    <td class="p-3 ${canalClass} font-black uppercase">${canal}</td>
-                    <td class="p-3 text-center">
-                        <span class="px-2 py-0.5 rounded-full text-[8px] font-black uppercase border ${stateClass}">${stateLabel}</span>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            loadKanban();
-            loadDashboardStats();
-
-            actualizarHeroCta();
-            if (localStorage.getItem('importease_wizard_draft')) {
-                document.getElementById('draftAlert').classList.remove('hidden');
-            }
-        });
+    <!-- Configuración dinámica — únicas expresiones JSP permitidas en scripts -->
+    <script nonce="<%= escapeJs(String.valueOf(request.getAttribute("csp_nonce"))) %>">
+        window.ImportEase = window.ImportEase || {};
+        window.ImportEase.ctx        = '<%= escapeJs(request.getContextPath()) %>';
+        window.ImportEase.csrfToken  = '<%= escapeJs(request.getAttribute("csrfToken") != null ? String.valueOf(request.getAttribute("csrfToken")) : "") %>';
+        window.ImportEase.csrfHeader = '<%= escapeJs(request.getAttribute("csrfHeader") != null ? String.valueOf(request.getAttribute("csrfHeader")) : "X-CSRF-TOKEN") %>';
+        // Alias legacy
+        window.ctx       = window.ImportEase.ctx;
+        window.csrfToken = window.ImportEase.csrfToken;
     </script>
+    <script nonce="<%= escapeJs(String.valueOf(request.getAttribute("csp_nonce"))) %>" src="js/dashboard.js" defer></script>
+
 </body>
 </html>

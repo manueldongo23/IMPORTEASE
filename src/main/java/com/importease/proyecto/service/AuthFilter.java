@@ -47,10 +47,8 @@ public class AuthFilter implements Filter {
         }
 
         // Endpoint publico limitado para registrar eventos anonimos. Evita abrir todo /api/tendencias/*.
-        boolean publicTendencias = ("POST".equalsIgnoreCase(req.getMethod())
-                && uri.equals(req.getContextPath() + "/api/tendencias/registrar"))
-                || ("GET".equalsIgnoreCase(req.getMethod())
-                && uri.equals(req.getContextPath() + "/api/tendencias/resumen-publico"));
+        boolean publicTendencias = "POST".equalsIgnoreCase(req.getMethod())
+                && uri.equals(req.getContextPath() + "/api/tendencias/registrar");
         if (publicTendencias) {
             chain.doFilter(request, response);
             return;

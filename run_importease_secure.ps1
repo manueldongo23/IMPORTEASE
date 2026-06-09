@@ -24,7 +24,11 @@ if (Test-Path .env) {
                 $value = $Matches[2].Trim()
                 if ($value -match '^"(.*)"$') { $value = $Matches[1] }
                 elseif ($value -match "^'(.*)'$") { $value = $Matches[1] }
-                [System.Environment]::SetEnvironmentVariable($key, $value, [System.EnvironmentVariableTarget]::Process)
+                
+                # Only set environment variable if value is not empty to avoid wiping out system-defined variables
+                if ($value -ne "") {
+                    [System.Environment]::SetEnvironmentVariable($key, $value, [System.EnvironmentVariableTarget]::Process)
+                }
             }
         }
     }

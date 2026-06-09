@@ -2,6 +2,11 @@
 <%@ page import="java.sql.*" %>
 <%@ page import="java.util.*" %>
 <%@ page import="com.importease.proyecto.service.ConexionDB" %>
+<%@ page import="com.importease.proyecto.dto.AuditoriaDTO" %>
+<%@ page import="com.importease.proyecto.dto.AuditoriaDTO.OperacionAuditoriaDTO" %>
+<%@ page import="com.importease.proyecto.dto.AuditoriaDTO.PermisoAuditoriaDTO" %>
+<%@ page import="com.importease.proyecto.dto.AuditoriaDTO.PartidaAuditoriaDTO" %>
+<%@ page import="com.importease.proyecto.dto.AuditoriaDTO.IncidenciaDTO" %>
 <%
     if (session.getAttribute("usuarioId") == null) {
         response.sendRedirect("login.jsp"); return;
@@ -11,37 +16,8 @@
     if (userNombre == null) userNombre = "Manuel";
     String userRuc = (String) session.getAttribute("usuarioRuc");
 
-    // Listas para mostrar y variables de agregación (Desacopladas de base de datos - Error 37)
-    Map<String, Object> auditData = com.importease.proyecto.service.AuditoriaService.obtenerDatosAuditoria(usuarioId);
-    
-    List<Map<String, Object>> operaciones = (List<Map<String, Object>>) auditData.get("operaciones");
-    List<Map<String, Object>> permisos = (List<Map<String, Object>>) auditData.get("permisos");
-    List<Map<String, Object>> topPartidas = (List<Map<String, Object>>) auditData.get("topPartidas");
-    List<Map<String, Object>> logsIncidencias = new ArrayList<>();
-
-    int totalOperaciones = (int) auditData.get("totalOperaciones");
-    double totalFob = (double) auditData.get("totalFob");
-    double totalImpuestos = (double) auditData.get("totalImpuestos");
-    int canalVerde = (int) auditData.get("canalVerde");
-    int canalNaranja = (int) auditData.get("canalNaranja");
-    int canalRojo = (int) auditData.get("canalRojo");
-    int totalAlertas = (int) auditData.get("totalAlertas");
-    int totalPermisos = (int) auditData.get("totalPermisos");
-
-    // Cargar logs de auditoría estáticos simulados de políticas
-    String[][] listLog = {
-        {"Clasificación HS", "MTC homologación celulares Wi-Fi/Bluetooth validada para partida 8517.13.00.00", "AUTOMÁTICO"},
-        {"Regla VUCE", "Alerta DIGESA activada para partida 2106.90.99.00 (Suplementos nutricionales)", "REGLA_ESTABLECIDA"},
-        {"Control Fiscal", "Percepción del IGV SUNAT ajustada al 3.5% para RUC recurrente " + userRuc, "SISTEMA"},
-        {"Criptografía PDF", "DAM firmada digitalmente con clave SHA-256 en formato regulatorio", "SEGURIDAD"}
-    };
-    for (String[] log : listLog) {
-        Map<String, Object> item = new HashMap<>();
-        item.put("modulo", log[0]);
-        item.put("desc", log[1]);
-        item.put("origen", log[2]);
-        logsIncidencias.add(item);
-    }
+    // Datos obtenidos limpiamente del DTO
+    AuditoriaDTO dto = com.importease.proyecto.service.AuditoriaServicio.obtenerDatosAuditoria(usuarioId, userRuc);
 %>
 <!DOCTYPE html>
 <html lang="es">
@@ -88,28 +64,28 @@
             <!-- 1. Operaciones Evaluadas -->
             <div class="glass-card p-5 flex flex-col justify-between relative overflow-hidden group hover:border-[var(--accent)] transition-all">
                 <span class="text-[9px] font-black text-[var(--text-tertiary)] uppercase tracking-widest block">Evaluaciones Totales</span>
-                <p class="text-3xl font-black text-[var(--text-primary)] mt-2 font-mono"><%= totalOperaciones %></p>
+                <p class="text-3xl font-black text-[var(--text-primary)] mt-2 font-mono"><%= dto.getTotalOperaciones() %></p>
                 <span class="text-[8px] text-[var(--text-secondary)] font-bold uppercase mt-2">Operaciones Registradas</span>
                 <div class="absolute bottom-0 left-0 h-1 w-1/3 bg-[var(--accent)] group-hover:w-full transition-all duration-500"></div>
             </div>
             <!-- 2. Permisos Pre-VUCE -->
             <div class="glass-card p-5 flex flex-col justify-between relative overflow-hidden group hover:border-[var(--accent)] transition-all">
                 <span class="text-[9px] font-black text-[var(--text-tertiary)] uppercase tracking-widest block">Expedientes Pre-VUCE</span>
-                <p class="text-3xl font-black text-[var(--text-primary)] mt-2 font-mono"><%= totalPermisos %></p>
+                <p class="text-3xl font-black text-[var(--text-primary)] mt-2 font-mono"><%= dto.getTotalPermisos() %></p>
                 <span class="text-[8px] text-[var(--text-secondary)] font-bold uppercase mt-2">Licencias y Trámites VUCE</span>
                 <div class="absolute bottom-0 left-0 h-1 w-1/3 bg-[var(--accent)] group-hover:w-full transition-all duration-500"></div>
             </div>
             <!-- 3. Liquidación Total Referencial -->
             <div class="glass-card p-5 flex flex-col justify-between relative overflow-hidden group hover:border-[var(--accent)] transition-all">
                 <span class="text-[9px] font-black text-[var(--text-tertiary)] uppercase tracking-widest block">Liquidación Fiscal</span>
-                <p class="text-2xl font-black text-[var(--success)] mt-2 font-mono">S/ <%= String.format("%,.2f", totalImpuestos) %></p>
+                <p class="text-2xl font-black text-[var(--success)] mt-2 font-mono">S/ <%= String.format("%,.2f", dto.getTotalImpuestos()) %></p>
                 <span class="text-[8px] text-[var(--text-secondary)] font-bold uppercase mt-2">Tributos Totales Estimados</span>
                 <div class="absolute bottom-0 left-0 h-1 w-1/3 bg-[var(--success)] group-hover:w-full transition-all duration-500"></div>
             </div>
             <!-- 4. Alertas de Cumplimiento -->
             <div class="glass-card p-5 flex flex-col justify-between relative overflow-hidden group hover:border-[var(--accent)] transition-all">
                 <span class="text-[9px] font-black text-[var(--danger)] uppercase tracking-widest block">Alertas Documentales</span>
-                <p class="text-3xl font-black text-[var(--danger)] mt-2 font-mono"><%= totalAlertas %></p>
+                <p class="text-3xl font-black text-[var(--danger)] mt-2 font-mono"><%= dto.getTotalAlertas() %></p>
                 <span class="text-[8px] text-[var(--text-secondary)] font-bold uppercase mt-2">Checklists Incompletos</span>
                 <div class="absolute bottom-0 left-0 h-1 w-1/3 bg-[var(--danger)] group-hover:w-full transition-all duration-500"></div>
             </div>
@@ -134,13 +110,13 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-[var(--border)] font-semibold text-[var(--text-secondary)]">
-                                <% if (operaciones.isEmpty()) { %>
+                                <% if (dto.getOperaciones().isEmpty()) { %>
                                     <tr>
                                         <td colspan="5" class="p-6 text-center text-[var(--text-tertiary)] font-medium">No se han registrado evaluaciones de preimportación.</td>
                                     </tr>
                                 <% } else { 
-                                    for (Map<String, Object> op : operaciones) { 
-                                        String canal = (String) op.get("canal_asignado");
+                                    for (OperacionAuditoriaDTO op : dto.getOperaciones()) { 
+                                        String canal = op.getCanalAsignado();
                                         String canalClass = "text-gray-400 bg-gray-100 border-gray-200";
                                         if ("VERDE".equalsIgnoreCase(canal)) canalClass = "text-[var(--success)] bg-[var(--success-soft)] border-[var(--success)]";
                                         else if ("NARANJA".equalsIgnoreCase(canal)) canalClass = "text-[var(--warning)] bg-[var(--warning-soft)] border-[var(--warning)]";
@@ -148,14 +124,14 @@
                                 %>
                                     <tr class="hover:bg-[var(--surface-2)]/30 transition-colors">
                                         <td class="p-3.5">
-                                            <div class="font-bold text-[var(--text-primary)]"><%= com.importease.proyecto.service.HtmlUtil.escape((String) op.get("producto_desc")) %></div>
-                                            <div class="text-[9px] text-[var(--text-tertiary)] font-bold tracking-wider uppercase mt-0.5">OP-<%= String.format("%05d", op.get("id")) %> · Origen: <%= com.importease.proyecto.service.HtmlUtil.escape((String) op.get("pais_origen")) %></div>
+                                            <div class="font-bold text-[var(--text-primary)]"><%= com.importease.proyecto.service.HtmlUtil.escape(op.getProductoDesc()) %></div>
+                                            <div class="text-[9px] text-[var(--text-tertiary)] font-bold tracking-wider uppercase mt-0.5">OP-<%= String.format("%05d", op.getId()) %> · Origen: <%= com.importease.proyecto.service.HtmlUtil.escape(op.getPaisOrigen()) %></div>
                                         </td>
-                                        <td class="p-3.5 font-mono text-[10px] text-[var(--text-secondary)] font-bold"><%= com.importease.proyecto.service.HtmlUtil.escape((String) op.get("hs_code")) %></td>
+                                        <td class="p-3.5 font-mono text-[10px] text-[var(--text-secondary)] font-bold"><%= com.importease.proyecto.service.HtmlUtil.escape(op.getHsCode()) %></td>
                                         <td class="p-3.5">
-                                            <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-[var(--surface-2)] border border-[var(--border)] text-[var(--text-secondary)]"><%= com.importease.proyecto.service.HtmlUtil.escape((String) op.get("entidad")) %></span>
+                                            <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-[var(--surface-2)] border border-[var(--border)] text-[var(--text-secondary)]"><%= com.importease.proyecto.service.HtmlUtil.escape(op.getEntidad()) %></span>
                                         </td>
-                                        <td class="p-3.5 text-right font-mono text-[var(--text-primary)]">S/ <%= String.format("%,.2f", op.get("total_impuestos")) %></td>
+                                        <td class="p-3.5 text-right font-mono text-[var(--text-primary)]">S/ <%= String.format("%,.2f", op.getTotalImpuestos()) %></td>
                                         <td class="p-3.5 text-center">
                                             <span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase border <%= canalClass %>"><%= com.importease.proyecto.service.HtmlUtil.escape(canal) %></span>
                                         </td>
@@ -173,11 +149,11 @@
                 <div class="glass-card p-6">
                     <h3 class="text-xs font-black text-[var(--text-secondary)] uppercase tracking-widest mb-4">Expedientes & SUCE Pre-VUCE</h3>
                     <div class="space-y-3 max-h-[300px] overflow-y-auto custom-scrollbar pr-1">
-                        <% if (permisos.isEmpty()) { %>
+                        <% if (dto.getPermisos().isEmpty()) { %>
                             <p class="text-xs text-[var(--text-tertiary)] text-center py-4 font-semibold">Ninguna solicitud de permiso pre-VUCE iniciada.</p>
                         <% } else {
-                            for (Map<String, Object> p : permisos) {
-                                String est = (String) p.get("estado");
+                            for (PermisoAuditoriaDTO p : dto.getPermisos()) {
+                                String est = p.getEstado();
                                 String estClass = "text-[var(--text-tertiary)] bg-[var(--surface-2)] border-[var(--border)]";
                                 if ("APROBADO".equals(est)) estClass = "text-[var(--success)] bg-[var(--success-soft)] border-[var(--success)]";
                                 else if ("ENVIADO_A_VUCE".equals(est) || "EN_EVALUACION".equals(est)) estClass = "text-[var(--warning)] bg-[var(--warning-soft)] border-[var(--warning)]";
@@ -186,14 +162,14 @@
                             <div class="p-4 rounded-2xl bg-[var(--surface-2)]/40 border border-[var(--border)] hover:border-[var(--accent)] transition-all flex flex-col justify-between gap-2 shadow-sm">
                                 <div class="flex justify-between items-start">
                                     <div>
-                                        <h5 class="text-xs font-black text-[var(--text-primary)]"><%= com.importease.proyecto.service.HtmlUtil.escape((String) p.get("codigo_entidad")) %> — <%= com.importease.proyecto.service.HtmlUtil.escape((String) p.get("tipo_permiso")) %></h5>
-                                        <p class="text-[9px] text-[var(--text-tertiary)] font-bold tracking-wider mt-0.5">Operación: OP-<%= String.format("%05d", p.get("operacion_id")) %></p>
+                                        <h5 class="text-xs font-black text-[var(--text-primary)]"><%= com.importease.proyecto.service.HtmlUtil.escape(p.getCodigoEntidad()) %> — <%= com.importease.proyecto.service.HtmlUtil.escape(p.getTipoPermiso()) %></h5>
+                                        <p class="text-[9px] text-[var(--text-tertiary)] font-bold tracking-wider mt-0.5">Operación: OP-<%= String.format("%05d", p.getOperacionId()) %></p>
                                     </div>
                                     <span class="px-2 py-0.5 rounded text-[8px] font-black uppercase border <%= estClass %> shrink-0"><%= com.importease.proyecto.service.HtmlUtil.escape(est) %></span>
                                 </div>
                                 <div class="flex justify-between items-center text-[9px] font-mono text-[var(--text-secondary)] pt-2 border-t border-[var(--border)] mt-2">
-                                    <span>SUCE: <%= p.get("numero_suce") != null ? com.importease.proyecto.service.HtmlUtil.escape((String) p.get("numero_suce")) : "En borrador" %></span>
-                                    <span>R.D.: <%= p.get("numero_documento_resolutivo") != null ? com.importease.proyecto.service.HtmlUtil.escape((String) p.get("numero_documento_resolutivo")) : "Pendiente" %></span>
+                                    <span>SUCE: <%= p.getNumeroSuce() != null ? com.importease.proyecto.service.HtmlUtil.escape(p.getNumeroSuce()) : "En borrador" %></span>
+                                    <span>R.D.: <%= p.getNumeroDocumentoResolutivo() != null ? com.importease.proyecto.service.HtmlUtil.escape(p.getNumeroDocumentoResolutivo()) : "Pendiente" %></span>
                                 </div>
                             </div>
                         <% } } %>
@@ -204,18 +180,18 @@
                 <div class="glass-card p-6">
                     <h3 class="text-xs font-black text-[var(--text-secondary)] uppercase tracking-widest mb-4">Ranking Partidas HS Buscadas</h3>
                     <div class="space-y-2">
-                        <% if (topPartidas.isEmpty()) { %>
+                        <% if (dto.getTopPartidas().isEmpty()) { %>
                             <div class="p-3 bg-[var(--surface-2)]/50 border border-[var(--border)] rounded-xl text-center text-xs text-[var(--text-tertiary)] font-medium">No hay registros de consultas.</div>
                         <% } else {
                             int rank = 1;
-                            for (Map<String, Object> tp : topPartidas) {
+                            for (PartidaAuditoriaDTO tp : dto.getTopPartidas()) {
                         %>
                             <div class="p-3 bg-[var(--surface-2)]/40 border border-[var(--border)] rounded-xl flex items-center justify-between text-xs font-semibold">
                                 <div class="flex items-center gap-2">
                                     <span class="w-5 h-5 rounded-full bg-white border border-[var(--border)] flex items-center justify-center font-bold text-[9px] text-[var(--text-tertiary)]"><%= rank++ %></span>
-                                    <span class="text-[var(--accent)] font-mono font-bold"><%= com.importease.proyecto.service.HtmlUtil.escape((String) tp.get("codigo")) %></span>
+                                    <span class="text-[var(--accent)] font-mono font-bold"><%= com.importease.proyecto.service.HtmlUtil.escape(tp.getCodigo()) %></span>
                                 </div>
-                                <span class="text-[10px] text-[var(--text-tertiary)] font-bold"><%= tp.get("busquedas") %> consultas</span>
+                                <span class="text-[10px] text-[var(--text-tertiary)] font-bold"><%= tp.getBusquedas() %> consultas</span>
                             </div>
                         <% } } %>
                     </div>
@@ -225,13 +201,13 @@
                 <div class="glass-card p-6">
                     <h3 class="text-xs font-black text-[var(--text-secondary)] uppercase tracking-widest mb-4">Incidencias de Cumplimiento</h3>
                     <div class="space-y-3 text-[10px] font-semibold text-[var(--text-secondary)]">
-                        <% for (Map<String, Object> log : logsIncidencias) { %>
+                        <% for (IncidenciaDTO log : dto.getLogsIncidencias()) { %>
                             <div class="p-3 rounded-xl bg-[var(--surface-2)]/40 border border-[var(--border)] flex flex-col gap-1 shadow-sm">
                                 <div class="flex justify-between items-center">
-                                    <strong class="text-[var(--text-primary)] uppercase tracking-wider text-[9px]"><%= log.get("modulo") %></strong>
-                                    <span class="px-1.5 py-0.5 rounded text-[8px] bg-white border border-[var(--border)] font-mono text-[var(--accent)]"><%= log.get("origen") %></span>
+                                    <strong class="text-[var(--text-primary)] uppercase tracking-wider text-[9px]"><%= log.getModulo() %></strong>
+                                    <span class="px-1.5 py-0.5 rounded text-[8px] bg-white border border-[var(--border)] font-mono text-[var(--accent)]"><%= log.getOrigen() %></span>
                                 </div>
-                                <p class="text-[var(--text-secondary)] leading-normal mt-1"><%= log.get("desc") %></p>
+                                <p class="text-[var(--text-secondary)] leading-normal mt-1"><%= log.getDesc() %></p>
                             </div>
                         <% } %>
                     </div>

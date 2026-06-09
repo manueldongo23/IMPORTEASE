@@ -86,7 +86,7 @@ public class CalculadoraTributaria {
             }
         } else {
             try {
-                java.util.Map<String, Object> tlcResult = TlcService.verificarTlc(origen);
+                java.util.Map<String, Object> tlcResult = TratadoLibreComercioServicio.verificarTlc(origen);
                 boolean tlcVigente = Boolean.TRUE.equals(tlcResult.get("tlcVigente"));
                 if (tlcVigente) {
                     BigDecimal arancelPref = (BigDecimal) tlcResult.get("arancelPreferencial");
@@ -110,8 +110,17 @@ public class CalculadoraTributaria {
 
         BigDecimal baseIgv = cif.add(arancel).add(isc);
         BigDecimal rawIgv = hs.getIgv();
+        BigDecimal rawIpm = hs.getIpm();
         BigDecimal tasaIgv = (rawIgv != null && rawIgv.compareTo(BigDecimal.ZERO) != 0) ? rawIgv : BigDecimal.valueOf(16);
-        BigDecimal tasaIpm = tasaIgv.compareTo(BigDecimal.ZERO) == 0 ? BigDecimal.ZERO : BigDecimal.valueOf(2);
+        BigDecimal tasaIpm = (rawIpm != null && rawIpm.compareTo(BigDecimal.ZERO) != 0) ? rawIpm : BigDecimal.valueOf(2);
+        
+        if (rawIgv != null && rawIgv.compareTo(BigDecimal.ZERO) == 0) {
+            tasaIgv = BigDecimal.ZERO;
+            tasaIpm = BigDecimal.ZERO;
+        } else if (tasaIgv.compareTo(BigDecimal.valueOf(18)) == 0) {
+            tasaIgv = BigDecimal.valueOf(16);
+            tasaIpm = BigDecimal.valueOf(2);
+        }
         
         BigDecimal igv = baseIgv.multiply(tasaIgv).divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
         BigDecimal ipm = baseIgv.multiply(tasaIpm).divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
@@ -139,6 +148,7 @@ public class CalculadoraTributaria {
         res.setTotalImpuestos(totalImpuestos);
         BigDecimal totalNacionalizado = cif.add(totalImpuestos);
         res.setTotalNacionalizado(totalNacionalizado);
+        res.setTotalSoles(totalNacionalizado.multiply(tipoCambio).setScale(2, RoundingMode.HALF_UP));
         // QA-018: Clamp all BigDecimal results to >= 0
         clampNonNegative(res);
         return res;
@@ -197,6 +207,7 @@ public class CalculadoraTributaria {
             res.setPercepcion(BigDecimal.ZERO);
             res.setTotalImpuestos(BigDecimal.ZERO);
             res.setTotalNacionalizado(cif);
+            res.setTotalSoles(cif.multiply(tipoCambio).setScale(2, RoundingMode.HALF_UP));
             res.setMensajeTlc(getMessage("importa.facil.exento", "Categoria B Importa Facil: exento de tributos (FOB < $200)."));
         } else if (fob.compareTo(UMBRAL_IMPORTA_FACIL) <= 0) {
             BigDecimal adValorem = cif.multiply(TASA_FLAT_IMPORTA_FACIL).setScale(2, RoundingMode.HALF_UP);
@@ -214,6 +225,7 @@ public class CalculadoraTributaria {
             res.setTotalImpuestos(totalImpuestos);
             BigDecimal totalNacionalizado = cif.add(totalImpuestos);
             res.setTotalNacionalizado(totalNacionalizado);
+            res.setTotalSoles(totalNacionalizado.multiply(tipoCambio).setScale(2, RoundingMode.HALF_UP));
             res.setMensajePercepcion(getMessage("importa.facil.percepcion", "Regimen Importa Facil (Categoria C): exento de percepcion."));
         } else {
             return calcularImpuestosGenerales(hs, usuario, fob, flete, seguro, paisOrigen, tipoCambio, incoterm, usado);
@@ -235,6 +247,7 @@ public class CalculadoraTributaria {
             res.setPercepcion(BigDecimal.ZERO);
             res.setTotalImpuestos(BigDecimal.ZERO);
             res.setTotalNacionalizado(res.getCif());
+            res.setTotalSoles(res.getTotalNacionalizado());
         } else if (valorFobUSD.compareTo(UMBRAL_IMPORTA_FACIL) <= 0) {
             BigDecimal cif = valorFobUSD.multiply(tipoCambio);
             res.setCif(cif);
@@ -254,6 +267,7 @@ public class CalculadoraTributaria {
             BigDecimal totalImpuestos = adValorem.add(igv).add(ipm);
             res.setTotalImpuestos(totalImpuestos);
             res.setTotalNacionalizado(cif.add(totalImpuestos));
+            res.setTotalSoles(res.getTotalNacionalizado());
         } else {
             res.setCif(valorFobUSD.multiply(tipoCambio));
             res.setArancel(BigDecimal.ZERO);
@@ -263,6 +277,7 @@ public class CalculadoraTributaria {
             res.setPercepcion(BigDecimal.ZERO);
             res.setTotalImpuestos(BigDecimal.ZERO);
             res.setTotalNacionalizado(res.getCif());
+            res.setTotalSoles(res.getTotalNacionalizado());
             res.setMensajeTlc(getMessage("importa.facil.excede", "FOB > $2000: usar regimen general (no Importa Facil)."));
         }
 

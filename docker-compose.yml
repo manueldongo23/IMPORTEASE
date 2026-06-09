@@ -50,10 +50,10 @@ services:
       SMTP_FROM: no-reply@importease.local
       SMTP_STARTTLS: "false"
       SMTP_SSL: "false"
-      APP_PUBLIC_URL: http://localhost:8082/importease
+      APP_PUBLIC_URL: http://localhost:8084/importease
       PERU_API_TOKEN: ""
     ports:
-      - "8082:8080"
+      - "8084:8080"
 
 volumes:
   mysql_data:

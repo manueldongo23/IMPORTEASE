@@ -639,10 +639,10 @@ async function handleAduanaBotSubmit(e) {
                 const adVal = parseFloat(topMatch.adValorem) || 0;
 
                 let responseHtml = `<strong>Coincidencia probable encontrada:</strong><br><br>`;
-                responseHtml += `<strong>Codigo sugerido:</strong> <code>${code}</code><br>`;
-                responseHtml += `<strong>Descripcion:</strong> <em>${desc}</em><br>`;
+                responseHtml += `<strong>Codigo sugerido:</strong> <code>${escapeHtml(code)}</code><br>`;
+                responseHtml += `<strong>Descripcion:</strong> <em>${escapeHtml(desc)}</em><br>`;
                 responseHtml += `<strong>Impuesto base:</strong> ${adVal}% | <strong>IGV/IPM:</strong> 18%<br>`;
-                responseHtml += `<strong>Permisos:</strong> ${requiresVuce ? 'revisar con ' + vuceEnt + ' antes de embarcar.' : 'sin alerta evidente con la informacion disponible.'}`;
+                responseHtml += `<strong>Permisos:</strong> ${requiresVuce ? 'revisar con ' + escapeHtml(vuceEnt) + ' antes de embarcar.' : 'sin alerta evidente con la informacion disponible.'}`;
 
                 removeTypingIndicator();
                 appendAduanaBotMessage('bot', responseHtml, { code: code, label: 'Usar este codigo' });
@@ -684,8 +684,9 @@ function appendAduanaBotMessage(sender, text, buttonConfig = null) {
 
     let buttonHtml = '';
     if (buttonConfig) {
-        buttonHtml = `<button onclick="triggerBotSearch('${buttonConfig.code}')" class="mt-3 px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 text-[10px] font-black uppercase tracking-wider rounded-xl border border-blue-200 active:scale-95 transition-all block w-full text-center cursor-pointer">
-            ${buttonConfig.label}
+        const safeCode = encodeURIComponent(buttonConfig.code);
+        buttonHtml = `<button data-bot-code="${safeCode}" class="bot-search-btn mt-3 px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 text-[10px] font-black uppercase tracking-wider rounded-xl border border-blue-200 active:scale-95 transition-all block w-full text-center cursor-pointer">
+            ${escapeHtml(buttonConfig.label)}
         </button>`;
     }
 
@@ -731,6 +732,15 @@ window.triggerBotSearch = function(code) {
 function escapeHtml(value) {
     return String(value || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
+
+// Bot search button event delegation (replaces inline onclick)
+document.addEventListener('click', function(e) {
+    const btn = e.target.closest('.bot-search-btn');
+    if (btn) {
+        const code = decodeURIComponent(btn.getAttribute('data-bot-code') || '');
+        if (code) window.triggerBotSearch(code);
+    }
+});
 
 // Bootstrap J2EE events
 if (document.readyState === 'loading') {

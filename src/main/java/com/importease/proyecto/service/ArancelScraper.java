@@ -16,7 +16,7 @@ import com.importease.proyecto.service.LoggerUtil;
 
 public class ArancelScraper {
 
-    private static final String BASE_URL   = "http://www.aduanet.gob.pe/itarancel/arancelS01Alias";
+    private static final String BASE_URL   = "https://www.aduanet.gob.pe/itarancel/arancelS01Alias";
     private static final String UA         = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36";
     
     // MÃ¡ximo 2 peticiones simultÃ¡neas a SUNAT para evitar bloqueos por IP

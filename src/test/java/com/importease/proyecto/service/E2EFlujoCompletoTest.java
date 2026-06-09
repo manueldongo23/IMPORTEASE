@@ -1,11 +1,11 @@
 package com.importease.proyecto.service;
 
-import com.importease.proyecto.dto.CoherenciaIssueDTO;
-import com.importease.proyecto.dto.GuidedStepDTO;
-import com.importease.proyecto.dto.NextActionDTO;
-import com.importease.proyecto.dto.HealthPanelDTO;
+import com.importease.proyecto.dto.IncidenciaCoherenciaDTO;
+import com.importease.proyecto.dto.PasoGuiadoDTO;
+import com.importease.proyecto.dto.SiguienteAccionDTO;
+import com.importease.proyecto.dto.PanelSaludDTO;
 import com.importease.proyecto.model.Importacion;
-import com.importease.proyecto.repository.ImportacionDAO;
+import com.importease.proyecto.repository.ImportacionRepositorio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
@@ -24,15 +24,15 @@ import static org.mockito.Mockito.*;
 
 public class E2EFlujoCompletoTest {
 
-    private GuidedFlowService guidedFlowService;
-    private HealthPanelService healthPanelService;
-    private NextActionService nextActionService;
+    private FlujoGuiadoServicio flujoGuiadoServicio;
+    private SaludPanelServicio saludPanelServicio;
+    private SiguienteAccionServicio siguienteAccionServicio;
 
     @BeforeEach
     public void setUp() {
-        guidedFlowService = new GuidedFlowService();
-        healthPanelService = new HealthPanelService();
-        nextActionService = new NextActionService();
+        flujoGuiadoServicio = new FlujoGuiadoServicio();
+        saludPanelServicio = new SaludPanelServicio();
+        siguienteAccionServicio = new SiguienteAccionServicio();
     }
 
     // --------------------------------------------------------------
@@ -41,7 +41,7 @@ public class E2EFlujoCompletoTest {
     @Test
     public void test1_CreateAndNavigateFlow() throws Exception {
         try (MockedStatic<ConexionDB> mockedConexion = Mockito.mockStatic(ConexionDB.class);
-             MockedStatic<AuditoriaService> mockedAuditoria = Mockito.mockStatic(AuditoriaService.class)) {
+             MockedStatic<AuditoriaServicio> mockedAuditoria = Mockito.mockStatic(AuditoriaServicio.class)) {
 
             Connection mockConn = mock(Connection.class);
             mockedConexion.when(ConexionDB::obtenerConexion).thenReturn(mockConn);
@@ -79,16 +79,16 @@ public class E2EFlujoCompletoTest {
                 return psDefault;
             });
 
-            GuidedStepDTO paso = guidedFlowService.obtenerPasoActual(12345);
+            PasoGuiadoDTO paso = flujoGuiadoServicio.obtenerPasoActual(12345);
             assertEquals(1, paso.getStep());
             assertEquals("PENDIENTE", paso.getEstado());
 
-            GuidedStepDTO siguiente = guidedFlowService.avanzarPaso(12345, 1);
+            PasoGuiadoDTO siguiente = flujoGuiadoServicio.avanzarPaso(12345, 1);
             assertEquals(2, siguiente.getStep());
             assertEquals("PENDIENTE", siguiente.getEstado());
             assertNull(siguiente.getMensajeBloqueo());
 
-            mockedAuditoria.verify(() -> AuditoriaService.registrar(
+            mockedAuditoria.verify(() -> AuditoriaServicio.registrar(
                 eq(1), eq("AVANZAR_PASO"), eq("expedientes"), eq(12345),
                 anyString(), any(), any()
             ));
@@ -102,7 +102,7 @@ public class E2EFlujoCompletoTest {
     @Test
     public void test2_Step2ValidationFailsWhenIncomplete() throws Exception {
         try (MockedStatic<ConexionDB> mockedConexion = Mockito.mockStatic(ConexionDB.class);
-             MockedStatic<AuditoriaService> mockedAuditoria = Mockito.mockStatic(AuditoriaService.class)) {
+             MockedStatic<AuditoriaServicio> mockedAuditoria = Mockito.mockStatic(AuditoriaServicio.class)) {
 
             Connection mockConn = mock(Connection.class);
             mockedConexion.when(ConexionDB::obtenerConexion).thenReturn(mockConn);
@@ -152,7 +152,7 @@ public class E2EFlujoCompletoTest {
                 return psDefault;
             });
 
-            GuidedStepDTO result = guidedFlowService.avanzarPaso(12345, 1);
+            PasoGuiadoDTO result = flujoGuiadoServicio.avanzarPaso(12345, 1);
             assertEquals("OBSERVADO", result.getEstado());
             assertNotNull(result.getMensajeBloqueo());
             assertTrue(result.getMensajeBloqueo().toLowerCase().contains("descripcion")
@@ -161,7 +161,7 @@ public class E2EFlujoCompletoTest {
                 "Mensaje de error debe indicar que la descripcion del producto es obligatoria, pero fue: "
                     + result.getMensajeBloqueo());
 
-            mockedAuditoria.verify(() -> AuditoriaService.registrar(
+            mockedAuditoria.verify(() -> AuditoriaServicio.registrar(
                 eq(1), eq("AVANZAR_PASO"), eq("expedientes"), eq(12345),
                 contains("OBSERVADO"), any(), any()
             ));
@@ -174,12 +174,12 @@ public class E2EFlujoCompletoTest {
     @Test
     public void test3_HealthPanelCalculatesHealth() throws Exception {
         try (MockedStatic<ConexionDB> mockedConexion = Mockito.mockStatic(ConexionDB.class);
-             MockedStatic<PlazoCriticoService> mockedPlazo = Mockito.mockStatic(PlazoCriticoService.class)) {
+             MockedStatic<PlazoCriticoServicio> mockedPlazo = Mockito.mockStatic(PlazoCriticoServicio.class)) {
 
             Connection mockConn = mock(Connection.class);
             mockedConexion.when(ConexionDB::obtenerConexion).thenReturn(mockConn);
 
-            mockedPlazo.when(() -> PlazoCriticoService.calcularPlazos(
+            mockedPlazo.when(() -> PlazoCriticoServicio.calcularPlazos(
                     any(), any(), anyString(), anyString()))
                 .thenReturn(new ArrayList<>());
 
@@ -282,7 +282,7 @@ public class E2EFlujoCompletoTest {
                 return psDefault;
             });
 
-            HealthPanelDTO health = healthPanelService.calcularSalud(12345);
+            PanelSaludDTO health = saludPanelServicio.calcularSalud(12345);
 
             assertNotNull(health.getPorcentajeCompletitud(), "porcentajeCompletitud no debe ser nulo");
             assertNotNull(health.getRiesgoDocumental(), "riesgoDocumental no debe ser nulo");
@@ -298,7 +298,7 @@ public class E2EFlujoCompletoTest {
     }
 
     // --------------------------------------------------------------
-    // test4: NextActionService returns correct action for a new operation
+    // test4: SiguienteAccionServicio returns correct action for a new operation
     // --------------------------------------------------------------
     @Test
     public void test4_NextActionReturnsAction() throws Exception {
@@ -351,7 +351,7 @@ public class E2EFlujoCompletoTest {
                 return psDefault;
             });
 
-            NextActionDTO action = nextActionService.calcularSiguienteAccion(12345);
+            SiguienteAccionDTO action = siguienteAccionServicio.calcularSiguienteAccion(12345);
 
             assertNotNull(action, "La accion no debe ser nula");
             assertTrue(action.getPaso() >= 1, "El paso debe ser >= 1");
@@ -368,7 +368,7 @@ public class E2EFlujoCompletoTest {
     // --------------------------------------------------------------
     @Test
     public void test6_IDOR_WizardBlocksOtherUserExpediente() throws Exception {
-        ImportacionDAO dao = new ImportacionDAO();
+        ImportacionRepositorio dao = new ImportacionRepositorio();
         Connection mockConn = mock(Connection.class);
         PreparedStatement ps = mock(PreparedStatement.class);
         ResultSet rs = mock(ResultSet.class);
@@ -418,7 +418,7 @@ public class E2EFlujoCompletoTest {
     @Test
     public void test5_PredamBlocksWhenMissingFields() throws Exception {
         try (MockedStatic<ConexionDB> mockedConexion = Mockito.mockStatic(ConexionDB.class);
-             MockedStatic<AuditoriaService> mockedAuditoria = Mockito.mockStatic(AuditoriaService.class)) {
+             MockedStatic<AuditoriaServicio> mockedAuditoria = Mockito.mockStatic(AuditoriaServicio.class)) {
 
             Connection mockConn = mock(Connection.class);
             mockedConexion.when(ConexionDB::obtenerConexion).thenReturn(mockConn);
@@ -472,7 +472,7 @@ public class E2EFlujoCompletoTest {
             when(rsOps.getBoolean("usado")).thenReturn(false);
             when(psOpsAll.executeQuery()).thenReturn(rsOps);
 
-            // ===== PredamValidationService inner query mocks =====
+            // ===== PredamValidacionServicio inner query mocks =====
             // SELECT FROM usuarios (importer identity)
             PreparedStatement psUsers = mock(PreparedStatement.class);
             ResultSet rsUsers = mock(ResultSet.class);
@@ -543,7 +543,7 @@ public class E2EFlujoCompletoTest {
                 return psDefault;
             });
 
-            GuidedStepDTO result = guidedFlowService.avanzarPaso(12345, 1);
+            PasoGuiadoDTO result = flujoGuiadoServicio.avanzarPaso(12345, 1);
 
             assertEquals("OBSERVADO", result.getEstado(),
                 "Step 7 debe quedar OBSERVADO cuando el PRE-DAM falla por datos incompletos");
@@ -552,7 +552,7 @@ public class E2EFlujoCompletoTest {
             assertTrue(result.getMensajeBloqueo().startsWith("Validacion PRE-DAM fallo"),
                 "El mensaje debe indicar que la validacion PRE-DAM fallo: " + result.getMensajeBloqueo());
 
-            mockedAuditoria.verify(() -> AuditoriaService.registrar(
+            mockedAuditoria.verify(() -> AuditoriaServicio.registrar(
                 eq(1), eq("AVANZAR_PASO"), eq("expedientes"), eq(12345),
                 contains("OBSERVADO"), any(), any()
             ));

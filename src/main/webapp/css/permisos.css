@@ -1,0 +1,37 @@
+/* ====================================================================
+   permisos.css - Estilos específicos para la gestión de permisos
+   ==================================================================== */
+
+.permisos-page .check-item input[type="checkbox"]:checked + span {
+    text-decoration: line-through;
+    opacity: 0.5;
+}
+
+/* Clases de utilidad para delays de animación fade-in */
+.permisos-page .delay-50 {
+    animation-delay: 0.05s;
+}
+
+.permisos-page .delay-100 {
+    animation-delay: 0.1s;
+}
+
+.permisos-page .delay-150 {
+    animation-delay: 0.15s;
+}
+
+.permisos-page .delay-200 {
+    animation-delay: 0.2s;
+}
+
+.permisos-page .delay-250 {
+    animation-delay: 0.25s;
+}
+
+.permisos-page .delay-300 {
+    animation-delay: 0.3s;
+}
+
+.permisos-page .delay-350 {
+    animation-delay: 0.35s;
+}

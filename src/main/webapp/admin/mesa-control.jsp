@@ -3,7 +3,7 @@
 <%@ page import="java.util.*" %>
 <%@ page import="com.importease.proyecto.model.Importacion" %>
 <%@ page import="com.importease.proyecto.service.ConexionDB" %>
-<%@ page import="com.importease.proyecto.service.PlazoCriticoService" %>
+<%@ page import="com.importease.proyecto.service.PlazoCriticoServicio" %>
 <%@ page import="com.importease.proyecto.service.HtmlUtil" %>
 
 <%
@@ -13,7 +13,7 @@
         response.sendRedirect("../login.jsp");
         return;
     }
-    com.importease.proyecto.repository.UsuarioDAO uDao = new com.importease.proyecto.repository.UsuarioDAO();
+    com.importease.proyecto.repository.UsuarioRepositorio uDao = new com.importease.proyecto.repository.UsuarioRepositorio();
     com.importease.proyecto.model.Usuario currentUser = uDao.buscarPorId(uIdAttr);
     if (currentUser == null || !"admin".equalsIgnoreCase(currentUser.getPerfil())) {
         response.sendRedirect("../dashboard.jsp");
@@ -67,7 +67,7 @@
             }
 
             // Calcular plazos reales con la base de datos
-            List<Map<String, Object>> plazos = PlazoCriticoService.calcularPlazos(con, imp, regimenCodigo, modalidadCodigo);
+            List<Map<String, Object>> plazos = PlazoCriticoServicio.calcularPlazos(con, imp, regimenCodigo, modalidadCodigo);
             
             // Determinar la máxima criticidad
             long minDays = Long.MAX_VALUE;
@@ -126,7 +126,9 @@
     <base href="<%= request.getContextPath() %>/">
     <title>ImportEase - Mesa de Control Aduanero</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-    <style>
+    <link rel="stylesheet" href="css/tailwind-output.css">
+    <link rel="stylesheet" href="<%= request.getContextPath() %>/css/main.css">
+    <style nonce="<%= request.getAttribute("csp_nonce") %>">
         body {
             font-family: 'Outfit', sans-serif;
             background-color: #0A0E17;

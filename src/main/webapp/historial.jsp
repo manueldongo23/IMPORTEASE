@@ -1,10 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" isELIgnored="true" %>
 <%@ page import="java.util.List" %>
-<%@ page import="com.importease.proyecto.model.Importacion" %>
-<%@ page import="com.importease.proyecto.repository.ImportacionDAO" %>
+<%@ page import="com.importease.proyecto.dto.HistorialDTO" %>
 <%@ page import="com.importease.proyecto.service.HtmlUtil" %>
-<%@ page import="com.importease.proyecto.service.ConexionDB" %>
-<%@ page import="java.sql.Connection" %>
 <%
     if (session.getAttribute("usuarioId") == null) {
         response.sendRedirect("login.jsp");
@@ -85,77 +82,35 @@
                     <tbody class="divide-y divide-[var(--border)] text-[var(--text-secondary)] font-semibold text-xs" id="evaluationsTableBody">
                         <%
                             Integer usuarioId = (Integer) session.getAttribute("usuarioId");
-                            com.importease.proyecto.service.ImportacionService importService = new com.importease.proyecto.service.ImportacionService();
-                            List<Importacion> lista = importService.listarPorUsuario(usuarioId);
+                            com.importease.proyecto.service.ImportacionServicio importService = new com.importease.proyecto.service.ImportacionServicio();
+                            List<HistorialDTO> lista = importService.obtenerHistorial(usuarioId);
 
                             if (lista != null && !lista.isEmpty()) {
-                                for (Importacion imp : lista) {
-                                    String code = imp.getHsCode();
-                                    
-                                    String entity = "--";
-                                    if (code != null) {
-                                        if (code.startsWith("8517")) entity = "MTC";
-                                        else if (code.startsWith("2106") || code.startsWith("1901")) entity = "DIGESA";
-                                        else if (code.startsWith("3004") || code.startsWith("3304") || code.startsWith("9018")) entity = "DIGEMID";
-                                        else if (code.startsWith("0602") || code.startsWith("1209")) entity = "SENASA";
-                                        else if (code.startsWith("4407")) entity = "SERFOR";
-                                    }
-                                    
-                                    String rawState = imp.getEstado();
-                                    if (rawState == null) rawState = "BORRADOR";
-                                    
-                                    String stateLabel = "Borrador";
-                                    String stateClass = "text-[var(--text-secondary)] bg-[var(--surface-2)] border-[var(--border)]";
-                                    String docFraction = "0/6";
-                                    String nextAction = "Completar información";
-                                    boolean isListable = false;
-                                    
-                                    if (rawState.equals("BORRADOR") || rawState.equals("COTIZACION")) {
-                                        stateLabel = "Borrador";
-                                        stateClass = "text-[var(--text-secondary)] bg-[var(--surface-2)] border-[var(--border)]";
-                                        docFraction = "0/6";
-                                        nextAction = "Completar información";
-                                    } else if (!entity.equals("--") && !rawState.equals("LISTA_DESPACHO") && !rawState.equals("NACIONALIZADA")) {
-                                        stateLabel = "Requiere permiso";
-                                        stateClass = "text-[var(--warning)] bg-[var(--warning-soft)] border-[var(--warning)]";
-                                        docFraction = "2/6";
-                                        nextAction = "Preparar expediente";
-                                    } else if (rawState.equals("PENDIENTE_DOCS")) {
-                                        stateLabel = "En revisión";
-                                        stateClass = "text-[var(--accent)] bg-[var(--accent-soft)] border-[var(--accent)]";
-                                        docFraction = "1/6";
-                                        nextAction = "Confirmar composición";
-                                    } else {
-                                        stateLabel = "Lista";
-                                        stateClass = "text-[var(--success)] bg-[var(--success-soft)] border-[var(--success)]";
-                                        docFraction = "6/6";
-                                        nextAction = "Descargar reporte";
-                                        isListable = true;
-                                    }
+                                for (HistorialDTO dto : lista) {
                         %>
-                        <tr class="hover:bg-[var(--surface-2)]/30 transition-all table-row-item border-b border-[var(--border)]" data-state-label="<%= stateLabel %>" data-raw-state="<%= rawState %>">
+                        <tr class="hover:bg-[var(--surface-2)]/30 transition-all table-row-item border-b border-[var(--border)]" data-state-label="<%= dto.getStateLabel() %>" data-raw-state="<%= dto.getRawState() %>">
                             <td class="px-8 py-5">
-                                <p class="text-sm font-black text-[var(--text-primary)]"><%= HtmlUtil.escape(imp.getProductoDesc() != null ? imp.getProductoDesc() : "Mercancía General") %></p>
-                                <p class="text-[9px] text-[var(--text-tertiary)] font-bold mt-1 uppercase tracking-widest">OP-<%= String.format("%05d", imp.getId()) %></p>
+                                <p class="text-sm font-black text-[var(--text-primary)]"><%= HtmlUtil.escape(dto.getProductoDesc()) %></p>
+                                <p class="text-[9px] text-[var(--text-tertiary)] font-bold mt-1 uppercase tracking-widest">OP-<%= String.format("%05d", dto.getId()) %></p>
                             </td>
                             <td class="px-8 py-5 font-mono text-[11px] text-[var(--text-secondary)] font-bold">
-                                <%= HtmlUtil.escape(code != null ? code : "Sin Partida") %>
+                                <%= HtmlUtil.escape(dto.getHsCode()) %>
                             </td>
                             <td class="px-8 py-5 font-black text-[var(--text-tertiary)] uppercase">
-                                <%= entity %>
+                                <%= dto.getEntidad() %>
                             </td>
                             <td class="px-8 py-5">
-                                <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase border <%= stateClass %>"><%= stateLabel %></span>
+                                <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase border <%= dto.getStateClass() %>"><%= dto.getStateLabel() %></span>
                             </td>
                             <td class="px-8 py-5 text-center text-[var(--text-primary)] font-bold">
-                                <%= docFraction %>
+                                <%= dto.getDocFraction() %>
                             </td>
                             <td class="px-8 py-5 text-[var(--text-secondary)] font-semibold">
-                                <%= nextAction %>
+                                <%= dto.getNextAction() %>
                             </td>
                             <td class="px-8 py-5 text-center">
-                                <% if (isListable) { %>
-                                <button data-imp-id="<%= imp.getId() %>" onclick='downloadDAMById(this.dataset.impId)' 
+                                <% if (dto.isListable()) { %>
+                                <button data-imp-id="<%= dto.getId() %>" onclick='downloadDAMById(this.dataset.impId)' 
                                         class="bg-white hover:bg-[var(--surface-2)] border border-[var(--border)] text-[var(--text-primary)] text-[10px] font-black px-4 py-2 rounded-xl uppercase tracking-wider transition-all shadow-sm cursor-pointer">
                                     Ver
                                 </button>

@@ -216,12 +216,21 @@
                         <properties>
                             <cargo.rmi.port>0</cargo.rmi.port>
                             <cargo.cpc.enabled>false</cargo.cpc.enabled>
-                            <cargo.servlet.port>8082</cargo.servlet.port>
+                            <cargo.servlet.port>8084</cargo.servlet.port>
                             <cargo.jvmargs>-Xms256m -Xmx1024m -XX:+UseG1GC -XX:+UseStringDeduplication --enable-native-access=ALL-UNNAMED -Djava.awt.headless=true</cargo.jvmargs>
                             <cargo.tomcat.connector.emptySessionPath/>
                             <cargo.tomcat.connector.URIEncoding>UTF-8</cargo.tomcat.connector.URIEncoding>
                         </properties>
                     </configuration>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.owasp</groupId>
+                <artifactId>dependency-check-maven</artifactId>
+                <version>9.2.0</version>
+                <configuration>
+                    <failOnError>false</failOnError>
+                    <format>ALL</format>
                 </configuration>
             </plugin>
         </plugins>

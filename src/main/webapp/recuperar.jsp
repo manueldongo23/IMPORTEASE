@@ -1,4 +1,9 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" isELIgnored="true" %>
+<%!
+    private String escapeJs(String value) {
+        return value == null ? "" : value.replace("\\", "\\\\").replace("'", "\\'").replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "\\r").replace("<", "\\u003C").replace(">", "\\u003E").replace("&", "\\u0026");
+    }
+%>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -7,204 +12,210 @@
     <title>ImportEase - Recuperar Contraseña</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&family=JetBrains+Mono:wght@500;800&display=swap" rel="stylesheet">
-    <link href="css/tailwind-output.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@500;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link href="css/main.css" rel="stylesheet">
-    <script nonce="<%= request.getAttribute("csp_nonce") %>">
-        (function() {
-            if (localStorage.getItem('dark_mode') === 'true') {
-                document.documentElement.classList.add('dark-mode');
-            }
-        })();
+    <link href="css/auth.css" rel="stylesheet">
+    <script nonce="<%= escapeJs(String.valueOf(request.getAttribute("csp_nonce"))) %>">
+        (function() { if (localStorage.getItem('dark_mode') === 'true') document.documentElement.classList.add('dark-mode'); })();
     </script>
 </head>
-<body class="min-h-screen flex items-center justify-center p-6 text-[var(--text-primary)] bg-[var(--surface-0)] font-['Outfit']">
+<body class="auth-page auth-recovery">
 
-    <div id="toastNotification" class="fixed top-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-4 px-6 py-4.5 rounded-2xl border bg-[var(--surface-1)] shadow-2xl transition-all duration-500 opacity-0 pointer-events-none scale-95 max-w-md w-[calc(100%-3rem)]">
-        <span id="toastIcon" class="text-xl"></span>
-        <div class="flex-1">
-            <p id="toastTitle" class="text-xs font-black uppercase tracking-wider"></p>
-            <p id="toastMessage" class="text-[11px] text-[var(--text-secondary)] font-semibold mt-0.5"></p>
+    <!-- Toast notification overlay -->
+    <div id="toastNotification" class="auth-toast">
+        <span id="toastIcon" class="auth-toast-icon"></span>
+        <div>
+            <p id="toastTitle" class="auth-toast-title"></p>
+            <p id="toastMessage" class="auth-toast-msg"></p>
         </div>
     </div>
 
-    <div class="glass-card w-full max-w-[440px] p-8 md:p-10 space-y-8 relative z-10 bg-[var(--surface-1)] border border-[var(--border)] shadow-2xl fade-up">
-        <div class="space-y-4">
-            <a href="login.jsp" class="inline-flex items-center gap-2 text-xs font-black text-[var(--accent)] hover:underline uppercase tracking-widest">
-                ‹ Volver al Cockpit
-            </a>
-            <h2 class="text-3xl font-black tracking-tight text-[var(--text-primary)]">Recuperar Acceso</h2>
-            <p class="text-[var(--text-secondary)] font-semibold text-xs leading-relaxed">Ingresa tu email corporativo registrado. Te enviaremos un enlace seguro para restablecer la contraseña.</p>
+    <!-- Success Modal Overlay -->
+    <div id="successModal" class="auth-modal-overlay">
+        <div class="auth-modal-box">
+            <div class="auth-modal-header">
+                <div class="auth-modal-header-left">
+                    <div class="auth-modal-badge">I</div>
+                    <h4 id="modalTitle">ImportEase — Solicitud registrada</h4>
+                </div>
+                <span class="chip">Recibidos</span>
+            </div>
+
+            <div class="auth-modal-email-preview">
+                <div class="auth-modal-email-row">
+                    <div><strong>De:</strong> <span>soporte@importease.com</span></div>
+                    <span class="time">Ahora mismo</span>
+                </div>
+                <div class="auth-modal-body">
+                    <h5>Restablece tu contraseña de ImportEase</h5>
+                    <p id="modalBodyText">Hemos recibido tu solicitud. Si el correo existe en nuestra base, recibirás un enlace seguro en los próximos minutos.</p>
+                    <div class="info-box" id="modalInfoBox">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                        <span id="modalInfoText">Revisa también tu carpeta de spam o correo no deseado. El enlace expira en 15 minutos.</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="auth-modal-actions">
+                <button id="modalPrimaryBtn">Entendido</button>
+                <button type="button" class="secondary" id="btnRecuperarCloseModal">Cerrar</button>
+            </div>
+
+            <p class="auth-modal-footer-note">Por seguridad, el enlace solo se entrega por correo electrónico.</p>
+        </div>
+    </div>
+
+    <div class="auth-panel-container">
+        <!-- LEFT PANEL -->
+        <div class="auth-panel-left">
+            <canvas id="neuralCanvas"></canvas>
+            <div class="auth-panel-left-overlay"></div>
+
+            <div class="auth-panel-left-content">
+                <!-- Logo -->
+                <div class="auth-brand">
+                    <div class="auth-brand-logo">
+                        <span class="auth-brand-logo-text">e</span>
+                    </div>
+                    <span class="auth-brand-name">ImportEase <span>Enterprise</span></span>
+                </div>
+
+                <div class="auth-hero-block">
+                    <!-- Priority pill -->
+                    <div class="priority-badge">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/>
+                        </svg>
+                        Tu seguridad, nuestra prioridad
+                    </div>
+
+                    <h1 class="auth-hero-title">Recupera el acceso a<br/>tu cuenta de forma<br/><span class="accent">segura</span></h1>
+                    <div class="auth-hero-bar"></div>
+                    <p class="auth-hero-desc">Te ayudamos a restablecer tu contraseña de manera rápida y protegida para que puedas volver a lo que importa.</p>
+
+                    <!-- Vertical Features Stack -->
+                    <div class="auth-features-stack">
+                        <div class="auth-stack-item">
+                            <div class="auth-stack-icon-wrap">
+                                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/>
+                                </svg>
+                            </div>
+                            <div class="auth-stack-text-wrap">
+                                <div class="auth-stack-title">Enlace seguro</div>
+                                <div class="auth-stack-desc">Generamos un enlace único y encriptado.</div>
+                            </div>
+                        </div>
+
+                        <div class="auth-stack-item">
+                            <div class="auth-stack-icon-wrap">
+                                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </div>
+                            <div class="auth-stack-text-wrap">
+                                <div class="auth-stack-title">Válido por 15 min</div>
+                                <div class="auth-stack-desc">El enlace expira por tu seguridad.</div>
+                            </div>
+                        </div>
+
+                        <div class="auth-stack-item">
+                            <div class="auth-stack-icon-wrap">
+                                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 21V18a1.5 1.5 0 00-1.5-1.5H6A1.5 1.5 0 004.5 18v3M10.5 3.5a1.5 1.5 0 013 0V4H18.25m-12.5 0H6m6-3V21m3.656-11.844a4.5 4.5 0 00-7.312 0"/>
+                                </svg>
+                            </div>
+                            <div class="auth-stack-text-wrap">
+                                <div class="auth-stack-title">Protección corporativa</div>
+                                <div class="auth-stack-desc">Cumplimos con los más altos estándares de seguridad.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <form id="recuperarForm" class="space-y-6">
-            <div class="space-y-2">
-                <label class="text-[10px] font-black text-[var(--text-tertiary)] uppercase tracking-[0.2em] ml-1">Email Corporativo</label>
-                <div class="relative group">
-                    <div class="absolute inset-y-0 left-5 flex items-center pointer-events-none text-[var(--text-tertiary)] group-focus-within:text-[var(--accent)] transition-colors">
-                        <svg class="w-5 h-5 text-[var(--text-tertiary)] group-focus-within:text-[var(--accent)] transition-colors" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+        <!-- RIGHT PANEL -->
+        <div class="auth-panel-right">
+            <!-- Back to top-right link -->
+            <a href="login.jsp" class="auth-top-back-link">
+                <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
+                </svg>
+                Volver al inicio
+            </a>
+
+            <div class="auth-card">
+                <!-- Mail badge icon -->
+                <div class="auth-mail-badge-container">
+                    <div class="auth-mail-dashed-circle">
+                        <svg class="auth-mail-icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"/>
                         </svg>
-                    </div>
-                    <input type="email" id="email" required
-                           class="w-full pl-14 pr-6 py-4 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] text-sm font-bold text-[var(--text-primary)] placeholder-[var(--text-tertiary)] focus:outline-none focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent-glow)] transition-all"
-                           placeholder="admin@empresa.com">
-                </div>
-            </div>
-
-            <button type="submit" id="btnEnviar" class="w-full py-4 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white text-xs font-black tracking-[0.2em] rounded-2xl shadow-lg transition-all transform active:scale-98">
-                ENVIAR SOLICITUD
-            </button>
-        </form>
-    </div>
-
-    <div id="gmailModal" class="fixed inset-0 z-50 hidden items-center justify-center p-6 bg-black/40 backdrop-blur-sm animate-fadeUp">
-        <div class="bg-[var(--surface-2)] rounded-3xl w-full max-w-lg p-6 md:p-8 relative overflow-hidden shadow-2xl border border-[var(--border)]">
-            <div class="flex items-center justify-between border-b border-[var(--border)] pb-4 mb-6">
-                <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-lg bg-rose-500 flex items-center justify-center font-black text-white text-base shadow-sm">M</div>
-                    <div>
-                        <h4 class="text-sm font-black text-[var(--text-primary)] leading-none" id="gmailModalTitle">Gmail Corporativo</h4>
-                        <p class="text-[8px] text-emerald-600 font-bold uppercase tracking-wider mt-0.5">Bandeja de entrada</p>
-                    </div>
-                </div>
-                <span class="text-[10px] font-bold text-[var(--text-tertiary)] font-mono">Buzón: Recibidos</span>
-            </div>
-
-            <div class="bg-[var(--surface-1)] border border-[var(--border)] rounded-2xl p-6 space-y-6 shadow-sm text-[var(--text-secondary)]">
-                <div class="flex justify-between items-start text-xs border-b border-[var(--border)] pb-3">
-                    <div>
-                        <p class="font-bold text-[var(--text-primary)]">De: <span class="font-medium text-[var(--text-tertiary)]">soporte@importease.com</span></p>
-                        <p class="font-bold text-[var(--text-primary)] mt-1">Para: <span class="font-medium text-[var(--text-tertiary)]" id="gmailTargetEmail">admin@empresa.com</span></p>
-                    </div>
-                    <span class="text-[9px] text-[var(--text-tertiary)] font-medium">Hace 1 segundo</span>
-                </div>
-
-                <div class="space-y-4">
-                    <h5 class="text-base font-black text-[var(--text-primary)] tracking-tight">ImportEase - Restablecer Contraseña</h5>
-                    <p class="text-xs leading-relaxed">
-                        Hola, <strong id="gmailTargetName" class="text-[var(--accent)]">Operador</strong>:<br/>
-                        Hemos recibido una solicitud para restablecer el acceso a tu cuenta de importador.
-                    </p>
-                    <div class="text-xs leading-relaxed font-semibold text-amber-700 bg-amber-50 border border-amber-200 p-4 rounded-xl flex gap-3">
-                        <svg class="w-5 h-5 shrink-0 text-amber-600 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/>
-                        </svg>
-                        <div id="gmailStatusMessage">
-                            <strong>Correo enviado:</strong> ya tienes un enlace seguro en tu bandeja para crear una nueva contraseña. Revisa también spam o correo no deseado.
+                        <div class="auth-mail-shield-badge">
+                            <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/>
+                            </svg>
                         </div>
                     </div>
                 </div>
 
-                <div class="space-y-2">
-                    <p class="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-tertiary)]">Estado</p>
-                    <button id="gmailResetLink" type="button"
-                       class="inline-flex items-center justify-center w-full px-4 py-3 rounded-xl bg-[var(--accent)] text-white text-xs font-black tracking-[0.18em] uppercase shadow-lg hover:bg-[var(--accent-hover)] transition-colors">
-                        Entendido
+                <h2 class="auth-card-title center">Restablece tu contraseña</h2>
+                <div class="title-accent-line"></div>
+                <p class="auth-card-subtitle center">Ingresa el correo asociado a tu cuenta y te enviaremos un enlace seguro para recuperar el acceso.</p>
+
+                <form id="recuperarForm" class="auth-field">
+                    <label class="auth-field-label" for="email">Correo electrónico</label>
+                    <div class="auth-input-wrap">
+                        <div class="auth-input-icon">
+                            <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"/>
+                            </svg>
+                        </div>
+                        <input type="email" id="email" class="auth-input" required placeholder="manuelandrepo@gmail.com" autocomplete="email">
+                        <div class="auth-checkmark-icon">
+                            <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <button type="submit" id="btnEnviar" class="auth-button">
+                        Enviar enlace de recuperación
+                        <div class="auth-circle-arrow">
+                            <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/>
+                            </svg>
+                        </div>
                     </button>
+                </form>
+
+                <!-- Divider with lock -->
+                <div class="auth-card-divider">
+                    <div class="line"></div>
+                    <svg class="auth-card-divider-lock" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/>
+                    </svg>
+                    <div class="line"></div>
                 </div>
 
-                <div class="pt-2 flex gap-3">
-                    <button onclick="rejectReset()" class="px-5 py-2.5 rounded-xl border border-[var(--border)] hover:bg-[var(--surface-2)] text-xs font-bold text-[var(--text-primary)] transition-all flex-1">
-                        Cerrar
-                    </button>
-                </div>
-            </div>
-
-            <div class="mt-6 text-center">
-                <p class="text-[9px] text-[var(--text-tertiary)] font-bold">Por seguridad, el enlace solo se entrega por correo y nunca se muestra en esta pantalla.</p>
+                <p class="auth-footer-text">¿Ya recordaste tu contraseña? <a href="login.jsp">Inicia sesión</a></p>
             </div>
         </div>
     </div>
 
-    <script nonce="<%= request.getAttribute("csp_nonce") %>">
-        let currentTargetEmail = '';
-
-        function showNotification(title, message, isSuccess = false) {
-            const toast = document.getElementById('toastNotification');
-            const icon = document.getElementById('toastIcon');
-            const tTitle = document.getElementById('toastTitle');
-            const tMsg = document.getElementById('toastMessage');
-
-            icon.innerText = isSuccess ? '✨' : '⚠️';
-            tTitle.innerText = title;
-            tTitle.className = `text-xs font-black uppercase tracking-wider ${isSuccess ? 'text-emerald-600' : 'text-rose-500'}`;
-            tMsg.innerText = message;
-
-            toast.className = `fixed top-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-4 px-6 py-4.5 rounded-2xl border bg-[var(--surface-1)] shadow-2xl transition-all duration-500 opacity-0 pointer-events-none scale-95 max-w-md w-[calc(100%-3rem)] ${isSuccess ? 'border-emerald-100 dark:border-emerald-950' : 'border-rose-100 dark:border-rose-950'}`;
-
-            setTimeout(() => {
-                toast.classList.add('toast-active');
-                toast.style.opacity = '1';
-                toast.style.transform = 'translate(-50%, 0) scale(1)';
-                toast.style.pointerEvents = 'auto';
-            }, 50);
-
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transform = 'translate(-50%, 0) scale(0.95)';
-                toast.style.pointerEvents = 'none';
-            }, 4000);
-        }
-
-        document.getElementById('recuperarForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('btnEnviar');
-            const email = document.getElementById('email').value;
-
-            btn.disabled = true;
-            btn.innerHTML = `
-                <div class="flex items-center justify-center gap-3">
-                    <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    PROCESANDO SOLICITUD...
-                </div>
-            `;
-
-            try {
-                const res = await fetch('<%= request.getContextPath() %>/api/usuario/recuperar', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email })
-                });
-
-                const data = await res.json();
-                if (data.success) {
-                    currentTargetEmail = email;
-                    document.getElementById('gmailTargetEmail').textContent = email;
-                    document.getElementById('gmailTargetName').textContent = 'Usuario';
-                    document.getElementById('gmailModalTitle').textContent = 'ImportEase - Solicitud registrada';
-                    document.getElementById('gmailStatusMessage').innerHTML = '<strong>Solicitud registrada:</strong> si el correo existe, recibiras un enlace seguro. Revisa tu bandeja de entrada y spam.';
-                    const resetLink = document.getElementById('gmailResetLink');
-                    resetLink.textContent = 'Entendido';
-                    resetLink.onclick = (ev) => { ev.preventDefault(); rejectReset(); };
-                    document.getElementById('gmailModal').classList.remove('hidden');
-                    document.getElementById('gmailModal').classList.add('flex');
-                    showNotification('Solicitud registrada', data.mensaje || 'Si el correo existe, recibiras un enlace.', true);
-                } else if (data.resetUrl) {
-                    document.getElementById('gmailStatusMessage').innerHTML = '<strong>Correo no enviado:</strong> pero puedes usar el enlace directo abajo para restablecer tu contraseña.';
-                    const resetLink = document.getElementById('gmailResetLink');
-                    resetLink.textContent = 'Abrir restablecimiento';
-                    resetLink.onclick = (ev) => { ev.preventDefault(); window.location.href = data.resetUrl; };
-                    document.getElementById('gmailModalTitle').textContent = 'ImportEase - Enlace directo';
-                    document.getElementById('gmailModal').classList.remove('hidden');
-                    document.getElementById('gmailModal').classList.add('flex');
-                    showNotification('Correo no enviado', 'Usa el enlace directo disponible en el modal.', false);
-                } else {
-                    showNotification('Solicitud denegada', data.mensaje || 'Error al procesar la solicitud', false);
-                }
-            } catch(e) {
-                showNotification('Fallo de conexión', 'No pudimos contactar con el servidor de ImportEase.', false);
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = 'ENVIAR SOLICITUD';
-            }
-        });
-
-        function rejectReset() {
-            document.getElementById('gmailModal').classList.add('hidden');
-            document.getElementById('gmailModal').classList.remove('flex');
-            showNotification('Solicitud completada', 'Si el correo existe, el enlace llegara a la bandeja registrada.', true);
-        }
+    <!-- CONFIGURATION & EXTERNAL LOGIC SCRIPTS -->
+    <script nonce="<%= escapeJs(String.valueOf(request.getAttribute("csp_nonce"))) %>">
+        window.ImportEase = window.ImportEase || {};
+        window.ImportEase.ctx = '<%= request.getContextPath() %>';
+        window.ImportEase.csrfToken = '<%= request.getAttribute("csrfToken") != null ? request.getAttribute("csrfToken") : "" %>';
+        window.ImportEase.csrfHeader = '<%= request.getAttribute("csrfHeader") != null ? request.getAttribute("csrfHeader") : "X-CSRF-TOKEN" %>';
+        window.ctx = window.ImportEase.ctx;
+        window.csrfToken = window.ImportEase.csrfToken;
     </script>
+    <script nonce="<%= escapeJs(String.valueOf(request.getAttribute("csp_nonce"))) %>" src="js/auth-recovery.js" defer></script>
 </body>
 </html>

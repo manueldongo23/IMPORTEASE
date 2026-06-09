@@ -1,24 +1,48 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" isELIgnored="true" %>
-<%
-    String activePage = (String) request.getAttribute("activePage");
-    if (activePage == null) activePage = "";
-    String userNombreSidebar = (String) session.getAttribute("usuarioNombre");
-    if (userNombreSidebar == null || userNombreSidebar.trim().isEmpty()) userNombreSidebar = "Usuario";
-    String userEmail = (String) session.getAttribute("usuarioEmail");
-    if (userEmail == null) userEmail = "";
-    String initials = (String) request.getAttribute("userInitials");
-    if (initials == null || initials.isEmpty()) {
-        initials = "US";
-        String[] parts = userNombreSidebar.trim().split("\\s+");
-        if (parts.length >= 2) {
-            initials = (parts[0].substring(0,1) + parts[1].substring(0,1)).toUpperCase();
-        } else if (parts.length == 1 && parts[0].length() >= 1) {
-            initials = parts[0].substring(0, Math.min(2, parts[0].length())).toUpperCase();
-        }
+<%@ page import="com.importease.proyecto.service.ConexionDB, java.sql.Connection, com.importease.proyecto.service.LoggerUtil" %>
+<%!
+    private String escapeJs(String value) {
+        if (value == null) return "";
+        return value.replace("\\", "\\\\").replace("'", "\\'").replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "\\r").replace("</", "<\\/");
     }
 %>
-<script nonce="<%= request.getAttribute("csp_nonce") %>">
-    window.csrfToken = '<%= com.importease.proyecto.service.CsrfUtil.getToken(session) %>';
+<%
+    String activePage = (String) request.getAttribute("activePage");
+    if (activePage == null) {
+        activePage = "";
+    }
+    // For sidebar: load user notification count
+    Integer usuarioId = (Integer) session.getAttribute("usuarioId");
+    int notifCount = 0;
+    String userNombreSidebar = "";
+    String initials = "US";
+    if (usuarioId != null) {
+        try (Connection con = ConexionDB.obtenerConexionSecundaria();
+             java.sql.PreparedStatement ps = con.prepareStatement("SELECT COUNT(*) FROM solicitudes_permiso WHERE usuario_id = ? AND estado = 'PERMISO_REQUERIDO'")) {
+            ps.setInt(1, usuarioId);
+            try (java.sql.ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) notifCount = rs.getInt(1);
+            }
+        } catch (Exception e) {
+            LoggerUtil.warn("No se pudieron cargar notificaciones del sidebar: " + e.getMessage());
+        }
+
+        userNombreSidebar = (String) session.getAttribute("usuarioNombre");
+        if (userNombreSidebar == null || userNombreSidebar.trim().isEmpty()) {
+            userNombreSidebar = "Usuario";
+        }
+        String[] namePartsSidebar = userNombreSidebar.trim().split("\\s+");
+        if (namePartsSidebar.length >= 2) {
+            initials = (namePartsSidebar[0].substring(0,1) + namePartsSidebar[1].substring(0,1)).toUpperCase();
+        } else if (namePartsSidebar.length == 1 && namePartsSidebar[0].length() >= 1) {
+            initials = namePartsSidebar[0].substring(0, Math.min(2, namePartsSidebar[0].length())).toUpperCase();
+        }
+    } else {
+        userNombreSidebar = "Usuario";
+    }
+%>
+<script nonce="<%= escapeJs(String.valueOf(request.getAttribute("csp_nonce"))) %>">
+    window.csrfToken = '<%= escapeJs(com.importease.proyecto.service.CsrfUtil.getToken(session)) %>';
     (function() {
         if (localStorage.getItem('dark_mode') === 'true') {
             document.documentElement.classList.add('dark-mode');
@@ -26,7 +50,9 @@
     })();
 </script>
 
-<style nonce="<%= request.getAttribute("csp_nonce") %>">
+<link rel="stylesheet" href="css/sidebar.css">
+<script src="js/ux-enhancements.js" defer></script>
+<style nonce="<%= escapeJs(String.valueOf(request.getAttribute("csp_nonce"))) %>">
 .sidebar-tools-toggle {
     cursor: pointer;
     display: flex;
@@ -48,6 +74,7 @@
 .sidebar-tools-toggle:hover { color: var(--nav-text); background: var(--nav-active); }
 .sidebar-tools-list { display: none; margin-top: 0.25rem; }
 .sidebar-tools-list.open { display: block; }
+.arrow { display: inline-block; transition: transform 0.2s ease; }
 .rotate-180 { transform: rotate(180deg); }
 .sidebar-nav-item-accent {
     background: var(--accent);
@@ -71,42 +98,33 @@
 </style>
 
 <!-- Mobile sidebar backdrop -->
-<div id="sidebarBackdrop" class="sidebar-backdrop" onclick="toggleSidebar()"></div>
+<div id="sidebarBackdrop" class="sidebar-backdrop"></div>
 
 <aside id="appSidebar" class="app-sidebar w-64 bg-[var(--nav-bg)] border-r border-[var(--nav-border)] flex flex-col h-full z-50 shrink-0 select-none text-[var(--nav-text)] font-['Outfit'] shadow-2xl">
     <!-- Brand -->
     <div class="px-5 py-5 border-b border-[var(--nav-border)] flex items-center justify-between">
         <a href="dashboard.jsp" class="flex items-center gap-3 min-w-0">
-            <div class="w-10 h-10 rounded-2xl bg-white/10 border border-white/10 flex items-center justify-center shrink-0">
-                <svg class="w-5 h-5 text-[var(--accent)]" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 12h18M12 3c4.971 0 9 4.029 9 9s-4.029 9-9 9-9-4.029-9-9 4.029-9 9-9z"/>
+            <div class="w-10 h-10 rounded-xl bg-[#EEF0FB] flex items-center justify-center shrink-0">
+                <svg class="w-6 h-6 text-[#5B50F0]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                    <line x1="12" y1="22.08" x2="12" y2="12"></line>
                 </svg>
             </div>
             <div class="min-w-0">
-                <h1 class="font-black text-base tracking-tight text-white">ImportEase</h1>
+                <h1 class="font-black text-base tracking-tight text-[#1a1d2e]">ImportEase</h1>
                 <p class="text-[10px] text-[var(--nav-muted)] font-semibold">Plataforma Aduanera</p>
             </div>
         </a>
-        <button onclick="toggleSidebar()" class="mobile-toggle flex lg:hidden items-center justify-center w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 transition-all border border-white/5 text-white">
+        <button class="mobile-toggle flex lg:hidden items-center justify-center w-8 h-8 rounded-xl bg-[#f3f4fd] hover:bg-[#eef0fb] transition-all border border-[#e5e8f5] text-[#5B50F0]">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
             </svg>
         </button>
     </div>
 
-    <!-- Quick start hint -->
-    <div class="px-4 pt-4">
-        <div class="rounded-xl bg-[var(--nav-bg-soft)] border border-[var(--nav-border)] px-3.5 py-2.5">
-            <p class="text-[9px] uppercase tracking-[0.2em] font-black text-[var(--accent)]">Empieza aqui</p>
-            <p class="text-[11px] text-[var(--nav-muted)] font-semibold mt-1.5 leading-relaxed">Describe tu producto en palabras simples. El sistema lo traduce a código, permisos, costos y documentos.</p>
-        </div>
-    </div>
-
     <!-- Navigation -->
-    <nav class="flex-1 px-3 py-4 overflow-y-auto custom-scrollbar">
-        <%-- Main navigation --%>
-        <span class="sidebar-section-label">Navegación</span>
-
+    <nav class="flex-1 px-3 py-4 overflow-y-auto custom-scrollbar flex flex-col gap-1">
         <% boolean isInicio = "dashboard".equals(activePage); %>
         <a href="dashboard.jsp" class="sidebar-nav-item <%= isInicio ? "is-active" : "" %>">
             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -115,34 +133,42 @@
             <span>Inicio</span>
         </a>
 
-        <% boolean isWizard = "wizard".equals(activePage); %>
-        <a href="evaluacion.jsp" class="sidebar-nav-item sidebar-nav-item-accent <%= isWizard ? "is-active" : "" %>">
+        <% boolean isMiImportacion = "wizard".equals(activePage) || "historial".equals(activePage) || "seguimiento".equals(activePage); %>
+        <a href="seguimiento.jsp" class="sidebar-nav-item <%= isMiImportacion ? "is-active" : "" %>">
             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"/>
             </svg>
-            <span>Importar</span>
+            <span>Mi importación</span>
         </a>
 
-        <% boolean isDocumentos = "documentos".equals(activePage); %>
-        <a href="documentos.jsp" class="sidebar-nav-item <%= isDocumentos ? "is-active" : "" %>">
+        <% boolean isBuscar = "buscador".equals(activePage) || "observatorio".equals(activePage); %>
+        <a href="buscador.jsp" class="sidebar-nav-item <%= isBuscar ? "is-active" : "" %>">
             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.625-3.375a2.25 2.25 0 00-3.375-3.375h-1.5a1.5 1.5 0 00-1.5 1.5v7.925M2.25 12.75a2.25 2.25 0 002.25 2.25h15a2.25 2.25 0 002.25-2.25m-19.5 0v5.625c0 .621.504 1.125 1.125 1.125h17.25c.621 0 1.125-.504 1.125-1.125v-5.625"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
             </svg>
-            <span>Expediente</span>
+            <span>Buscar producto / código</span>
         </a>
 
-        <% boolean isHistorial = "historial".equals(activePage); %>
-        <a href="seguimiento.jsp" class="sidebar-nav-item <%= isHistorial ? "is-active" : "" %>">
+        <% boolean isDocPerm = "documentos".equals(activePage) || "permisos".equals(activePage); %>
+        <a href="documentos.jsp" class="sidebar-nav-item <%= isDocPerm ? "is-active" : "" %>">
             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/>
             </svg>
-            <span>Historial</span>
+            <span>Documentos y permisos</span>
+        </a>
+
+        <% boolean isCostos = "calculadora".equals(activePage) || "comparador".equals(activePage) || "incoterms".equals(activePage); %>
+        <a href="calculadora-negocio.jsp" class="sidebar-nav-item <%= isCostos ? "is-active" : "" %>">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span>Costos</span>
         </a>
 
         <div class="sidebar-divider"></div>
 
-        <button class="sidebar-tools-toggle" onclick="this.nextElementSibling.classList.toggle('open'); this.querySelector('.arrow').classList.toggle('rotate-180')">
-            <span class="arrow" style="transition:transform 0.2s">▾</span> Herramientas
+        <button class="sidebar-tools-toggle" type="button">
+            <span class="arrow">▾</span> Herramientas
         </button>
         <div class="sidebar-tools-list">
             <% boolean isHs = "buscador".equals(activePage); %>
@@ -193,51 +219,44 @@
                 <span>Comparar escenarios</span>
             </a>
         </div>
+
+        <div class="sidebar-divider"></div>
+
+        <button type="button" class="sidebar-nav-item" id="sidebar-help-nav-item">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z"/>
+            </svg>
+            <span>Ayuda</span>
+        </button>
     </nav>
 
-    <!-- Dark mode toggle -->
-    <div class="px-4 pb-2">
-        <div class="rounded-xl bg-[var(--nav-bg-soft)] border border-[var(--nav-border)] p-3.5">
-            <div class="flex items-center justify-between">
-                <span class="text-xs font-semibold text-[var(--nav-text)]">Modo oscuro</span>
-                <label class="relative inline-flex items-center cursor-pointer select-none">
-                    <input type="checkbox" id="sidebarDarkToggle" class="sr-only peer" onchange="toggleDarkMode(this.checked)">
-                    <div class="w-9 h-5 bg-white/20 rounded-full peer peer-checked:bg-white/80 after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:w-4 after:h-4 after:bg-white after:rounded-full after:transition-all peer-checked:after:translate-x-4"></div>
-                </label>
+    <!-- Bottom support widget -->
+    <div class="sidebar-support-card">
+        <div class="sidebar-support-avatar-wrap">
+            <div class="sidebar-support-avatar">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 18a8 8 0 0 1 16 0" />
+                    <circle cx="12" cy="10" r="4" />
+                    <path d="M8 10a4 4 0 0 1 8 0" />
+                    <rect x="6" y="9" width="2" height="3" rx="1" fill="currentColor" />
+                    <rect x="16" y="9" width="2" height="3" rx="1" fill="currentColor" />
+                    <path d="M16 11c0 2-2 2-2 2" />
+                </svg>
             </div>
-            <p class="text-[9px] text-[var(--nav-muted)] font-semibold leading-relaxed mt-2">Usa primero "Importar". Las herramientas están agrupadas abajo.</p>
         </div>
-    </div>
-
-    <!-- User bottom section -->
-    <div class="p-3 border-t border-[var(--nav-border)] bg-[var(--nav-bg-soft)]">
-        <div class="flex items-center gap-2.5">
-            <div class="w-9 h-9 rounded-xl bg-white/10 border border-white/10 flex items-center justify-center font-black text-sm text-[var(--accent)] shrink-0">
-                <%= com.importease.proyecto.service.HtmlUtil.escape(initials) %>
-            </div>
-            <div class="min-w-0 flex-1">
-                <p class="text-sm font-bold text-white truncate"><%= com.importease.proyecto.service.HtmlUtil.escape(userNombreSidebar) %></p>
-                <p class="text-[9px] text-[var(--nav-muted)] font-semibold">Sesión activa</p>
-            </div>
-            <div class="flex items-center gap-1 shrink-0">
-                <button onclick="openHelpModal()" title="Ayuda" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 transition-all flex items-center justify-center border border-white/5">
-                    <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                </button>
-                <button onclick="confirmLogout()" title="Cerrar sesión" class="w-8 h-8 rounded-xl bg-[var(--accent)]/10 hover:bg-[var(--accent)]/20 transition-all flex items-center justify-center border border-[var(--accent)]/20">
-                    <svg class="w-3.5 h-3.5 text-[var(--accent)]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
-                    </svg>
-                </button>
-            </div>
+        <div class="sidebar-support-content">
+            <span class="sidebar-support-title">¿Necesitas ayuda?</span>
+            <span class="sidebar-support-subtitle">Estamos aquí para acompañarte</span>
+            <a href="#" class="sidebar-support-link" id="sidebar-support-contact-btn">
+                Contactar soporte &rarr;
+            </a>
         </div>
     </div>
 </aside>
 
 <jsp:include page="/fragments/helpModal.jsp" />
 
-<script nonce="<%= request.getAttribute("csp_nonce") %>">
+<script nonce="<%= escapeJs(String.valueOf(request.getAttribute("csp_nonce"))) %>">
 const legacyTextFixes = [
     ['Ã¡', 'a'], ['Ã©', 'e'], ['Ã­', 'i'], ['Ã³', 'o'], ['Ãº', 'u'],
     ['Ã', 'A'], ['Ã‰', 'E'], ['Ã', 'I'], ['Ã“', 'O'], ['Ãš', 'U'],
@@ -322,10 +341,15 @@ function closeSidebar() {
     document.body.style.overflow = '';
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+function initSidebar() {
     const isDark = localStorage.getItem('dark_mode') === 'true';
     const darkCheckbox = document.getElementById('sidebarDarkToggle');
-    if (darkCheckbox) darkCheckbox.checked = isDark;
+    if (darkCheckbox) {
+        darkCheckbox.checked = isDark;
+        darkCheckbox.addEventListener('change', function() {
+            toggleDarkMode(this.checked);
+        });
+    }
     document.documentElement.classList.toggle('dark-mode', isDark);
 
     // Close sidebar on escape key
@@ -342,11 +366,64 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 200);
     });
 
+    // Programmatic event listeners for CSP compliance
+    const backdrop = document.getElementById('sidebarBackdrop');
+    if (backdrop) {
+        backdrop.addEventListener('click', (e) => {
+            e.preventDefault();
+            toggleSidebar();
+        });
+    }
+
+    const mobileToggle = document.querySelector('.mobile-toggle');
+    if (mobileToggle) {
+        mobileToggle.addEventListener('click', (e) => {
+            e.preventDefault();
+            toggleSidebar();
+        });
+    }
+
+    const toolsToggle = document.querySelector('.sidebar-tools-toggle');
+    if (toolsToggle) {
+        toolsToggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            this.nextElementSibling.classList.toggle('open');
+            const arrow = this.querySelector('.arrow');
+            if (arrow) arrow.classList.toggle('rotate-180');
+        });
+    }
+
+    const helpBtn = document.getElementById('sidebar-help-nav-item');
+    if (helpBtn) {
+        helpBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (typeof openHelpModal === 'function') {
+                openHelpModal();
+            }
+        });
+    }
+
+    const supportBtn = document.getElementById('sidebar-support-contact-btn');
+    if (supportBtn) {
+        supportBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (typeof openHelpModal === 'function') {
+                openHelpModal();
+            }
+        });
+    }
+
     normalizeLegacyText(document.body);
 
     const observer = new MutationObserver(() => normalizeLegacyText(document.body));
     observer.observe(document.body, { childList: true, subtree: true });
-});
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initSidebar);
+} else {
+    initSidebar();
+}
 
 function confirmLogout() {
     if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
@@ -356,12 +433,12 @@ function confirmLogout() {
 
 async function doLogout() {
     try {
-        const ctxPath = '<%= request.getContextPath() %>';
+        const ctxPath = '<%= escapeJs(request.getContextPath()) %>';
         await fetch(ctxPath + '/api/usuario/logout', {
             method: 'POST',
             headers: { 'X-CSRF-TOKEN': window.csrfToken || '' }
         });
     } catch (e) {}
-    window.location.href = '<%= request.getContextPath() %>/login.jsp';
+    window.location.href = '<%= escapeJs(request.getContextPath()) %>/login.jsp';
 }
 </script>

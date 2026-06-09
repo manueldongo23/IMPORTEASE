@@ -45,7 +45,7 @@
         response.sendRedirect("../login.jsp");
         return;
     }
-    com.importease.proyecto.repository.UsuarioDAO uDao = new com.importease.proyecto.repository.UsuarioDAO();
+    com.importease.proyecto.repository.UsuarioRepositorio uDao = new com.importease.proyecto.repository.UsuarioRepositorio();
     com.importease.proyecto.model.Usuario currentUser = uDao.buscarPorId(uIdAttr);
     if (currentUser == null || !"admin".equalsIgnoreCase(currentUser.getPerfil())) {
         response.sendRedirect("../dashboard.jsp");

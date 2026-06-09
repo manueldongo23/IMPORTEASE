@@ -31,4 +31,3 @@ public class PasswordValidator {
         return null; // VÃ¡lida
     }
 }
-

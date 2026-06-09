@@ -93,7 +93,7 @@ public class CsrfFilter implements Filter {
 
             chain.doFilter(request, response);
         } finally {
-            TipoCambioService.limpiarThreadLocal();
+            TipoCambioServicio.limpiarThreadLocal();
         }
     }
 

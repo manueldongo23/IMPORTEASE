@@ -1,0 +1,84 @@
+/* importacion-guiada.css – Styles for Wizard and Guided Import screen */
+
+.w-step {
+  transition: all 0.3s var(--ease-spring, cubic-bezier(0.4, 0, 0.2, 1));
+  position: relative;
+  cursor: pointer;
+}
+
+.w-step:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.w-step.active {
+  background: var(--accent-soft, rgba(79, 70, 229, 0.05));
+  border-color: var(--accent, #4F46E5);
+  color: var(--accent, #4F46E5);
+  box-shadow: 0 0 0 3px var(--accent-glow, rgba(79, 70, 229, 0.15));
+}
+
+.w-step.completed {
+  background: #f0fdf4 !important;
+  border-color: #bbf7d0 !important;
+  color: #15803d !important;
+}
+
+.w-step.blocked {
+  background: #fef2f2 !important;
+  border-color: #fecaca !important;
+  color: #b91c1c !important;
+}
+
+.w-help {
+  background: var(--surface-1, #ffffff);
+  border: 1px solid var(--border, #e5e7eb);
+  transition: all 0.3s ease;
+}
+
+/* Severity badge / chip styles */
+.severity-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.6rem;
+  font-size: 10px;
+  font-weight: 800;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  line-height: 1;
+}
+
+.severity-chip.OK, 
+.severity-chip.COMPLETO,
+.severity-chip.VERDE,
+.severity-chip.BAJO {
+  background-color: #d1fae5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.severity-chip.PENDIENTE, 
+.severity-chip.MEDIO,
+.severity-chip.AMARILLO {
+  background-color: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+
+.severity-chip.CRITICO, 
+.severity-chip.ALTO, 
+.severity-chip.ERROR,
+.severity-chip.ROJO,
+.severity-chip.BLOQUEADO {
+  background-color: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.severity-chip.INFO,
+.severity-chip.AZUL {
+  background-color: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #bfdbfe;
+}

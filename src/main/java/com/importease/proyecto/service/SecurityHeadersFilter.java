@@ -61,9 +61,10 @@ public class SecurityHeadersFilter implements Filter {
             "base-uri 'self'; " +
             "object-src 'none'; " +
             "form-action 'self'; " +
-            "script-src 'self'; " +
+            "script-src 'self' 'unsafe-inline'; " +
             "script-src-elem 'self' 'nonce-" + cspNonce + "' https://cdn.jsdelivr.net https://unpkg.com; " +
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; " +
+            "style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; " +
             "font-src 'self' https://fonts.gstatic.com; " +
             "img-src 'self' data: https://www.vuce.gob.pe https://orientacion.sunat.gob.pe; " +
             "connect-src 'self' https://estadisticas.bcrp.gob.pe; " +

@@ -1,0 +1,106 @@
+/* =====================================================
+   documentos.css — Estilos de Documentos de Importación
+   Scope: .documentos-page
+   Preserva clases: custom-input, folder-card, drag-active
+   ===================================================== */
+
+/* ── Focus de inputs ───────────────────────────────── */
+.documentos-page .custom-input:focus {
+    border-color: var(--accent, #7C5CFC) !important;
+    box-shadow: 0 0 0 4px var(--accent-glow, rgba(124, 92, 252, 0.15)) !important;
+}
+
+/* ── Tarjetas de tipo de documento ─────────────────── */
+.documentos-page .folder-card {
+    transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.documentos-page .folder-card:hover {
+    transform: translateY(-4px);
+    box-shadow:
+        0 20px 25px -5px rgba(59, 130, 246, 0.05),
+        0 10px 10px -5px rgba(59, 130, 246, 0.02);
+    border-color: var(--accent, #7C5CFC) !important;
+}
+
+.documentos-page .folder-card.is-selected {
+    border-color: var(--accent, #7C5CFC) !important;
+    box-shadow: 0 0 0 3px var(--accent-glow, rgba(124, 92, 252, 0.15));
+}
+
+/* ── Estado drag-and-drop activo ───────────────────── */
+.documentos-page .drag-active {
+    border-color: var(--accent, #7C5CFC) !important;
+    background-color: var(--accent-soft, #f0edff) !important;
+}
+
+/* ── Skeleton loader de documentos ─────────────────── */
+.documentos-page .doc-loading-row {
+    height: 1rem;
+    border-radius: 0.5rem;
+    background: linear-gradient(90deg, var(--surface-2, #f5f4f0) 25%, var(--surface-1, #faf9f6) 50%, var(--surface-2, #f5f4f0) 75%);
+    background-size: 200% 100%;
+    animation: doc-shimmer 1.4s infinite;
+}
+
+.documentos-page .doc-loading-row.short {
+    width: 60%;
+}
+
+@keyframes doc-shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* =====================================================
+   Estados visuales de documentos
+   Activos: doc-estado--pendiente, doc-estado--cargado
+   Reservados (backend aún no los devuelve):
+     doc-estado--validado, doc-estado--observado,
+     doc-estado--vencido, doc-estado--no-aplica
+   ===================================================== */
+
+/* Pendiente — el backend devuelve este estado */
+.doc-estado--pendiente {
+    background-color: var(--warning-soft, #fffbeb);
+    color: var(--warning, #d97706);
+    border-color: #fde68a;
+}
+
+/* Cargado — el backend devuelve este estado */
+.doc-estado--cargado {
+    background-color: var(--success-soft, #f0fdf4);
+    color: var(--success, #16a34a);
+    border-color: #bbf7d0;
+}
+
+/* ── Reservados para expansión futura ──────────────── */
+/* Usar solo cuando el backend devuelva el estado correspondiente */
+
+/* Validado — pendiente de soporte backend */
+.doc-estado--validado {
+    background-color: #eff6ff;
+    color: #1d4ed8;
+    border-color: #bfdbfe;
+}
+
+/* Observado — pendiente de soporte backend */
+.doc-estado--observado {
+    background-color: #fff7ed;
+    color: #c2410c;
+    border-color: #fed7aa;
+}
+
+/* Vencido — pendiente de soporte backend */
+.doc-estado--vencido {
+    background-color: #fef2f2;
+    color: #b91c1c;
+    border-color: #fca5a5;
+}
+
+/* No aplica — pendiente de soporte backend */
+.doc-estado--no-aplica {
+    background-color: var(--surface-2, #f5f4f0);
+    color: var(--text-tertiary, #9B9690);
+    border-color: var(--border, #E6E2D8);
+}
