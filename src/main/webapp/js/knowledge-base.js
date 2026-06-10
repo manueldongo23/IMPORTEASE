@@ -233,4 +233,52 @@ function closeKnowledgePanel() {
     }, 180);
 }
 
-document.addEventListener('DOMContentLoaded', ensureKnowledgePanel);
+function readKnowledgeOverrides(trigger) {
+    if (!trigger || !trigger.dataset) return {};
+    const overrides = {};
+    const mappings = {
+        knowledgeEtapa: 'etapa',
+        knowledgeSubtitulo: 'subtitulo',
+        knowledgeRelacion: 'relacionConTuCaso',
+        knowledgeTitulo: 'titulo',
+        knowledgeRecuerda: 'recuerda',
+        knowledgeQueEs: 'queEs',
+        knowledgeParaQueSirve: 'paraQueSirve',
+        knowledgeActionLabel: 'actionLabel',
+        knowledgeActionHref: 'actionHref'
+    };
+
+    Object.keys(mappings).forEach((dataKey) => {
+        const value = trigger.dataset[dataKey];
+        if (value !== undefined && value !== null && value !== '') {
+            overrides[mappings[dataKey]] = value;
+        }
+    });
+
+    return overrides;
+}
+
+function handleKnowledgeTriggerClick(event) {
+    const trigger = event.target && event.target.closest ? event.target.closest('[data-knowledge-key]') : null;
+    if (!trigger) return;
+
+    const key = trigger.dataset.knowledgeKey;
+    if (!key) return;
+
+    event.preventDefault();
+    openKnowledgePanel(key, readKnowledgeOverrides(trigger));
+}
+
+function initKnowledgeBase() {
+    ensureKnowledgePanel();
+    document.addEventListener('click', handleKnowledgeTriggerClick);
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initKnowledgeBase);
+} else {
+    initKnowledgeBase();
+}
+
+window.openKnowledgePanel = openKnowledgePanel;
+window.closeKnowledgePanel = closeKnowledgePanel;

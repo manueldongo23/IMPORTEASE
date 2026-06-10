@@ -70,7 +70,7 @@
                 </div>
                 <div class="w-full md:w-[28rem]">
                     <label class="block text-[9px] uppercase tracking-widest font-black text-gray-400 mb-2">Seleccionar importacion</label>
-                    <select id="importacionSelect" onchange="cambiarOperacion()" class="w-full px-5 py-3.5 bg-white border border-[var(--border)] rounded-xl text-xs text-[var(--text-primary)] font-semibold custom-input appearance-none bg-no-repeat focus:outline-none transition-all cursor-pointer">
+                    <select id="importacionSelect" class="w-full px-5 py-3.5 bg-white border border-[var(--border)] rounded-xl text-xs text-[var(--text-primary)] font-semibold custom-input appearance-none bg-no-repeat focus:outline-none transition-all cursor-pointer">
                         <option value="" class="text-gray-400">Cargando tus operaciones...</option>
                     </select>
                 </div>
@@ -99,9 +99,9 @@
                     <h3 class="text-sm font-black text-[var(--text-primary)] mb-1">Factura Comercial</h3>
                     <p id="desc_FACTURA_COMERCIAL" class="text-[10px] text-gray-400 font-semibold">0 documentos</p>
                     <div class="mt-4 flex flex-wrap gap-2">
-                        <button type="button" onclick="openKnowledgePanel('factura_comercial')" class="px-3 py-2 rounded-xl bg-[var(--accent-soft)] border border-[var(--accent-glow)] text-[10px] font-black uppercase tracking-wider text-[var(--accent)]">Ver para que sirve</button>
-                        <button type="button" onclick="openKnowledgePanel('factura_comercial', { subtitulo: 'Ejemplo rapido para novatos', relacionConTuCaso: 'Imagina que tu proveedor te envia una factura con producto, cantidades, precio e incoterm. Ese es el ejemplo que debes validar.' })" class="px-3 py-2 rounded-xl bg-white border border-[var(--border)] text-[10px] font-black uppercase tracking-wider text-[var(--text-primary)]">Ver ejemplo</button>
-                        <button type="button" onclick="openKnowledgePanel('factura_comercial', { etapa: 'Antes de embarcar', subtitulo: 'Momento correcto para pedirla', relacionConTuCaso: 'Pide la factura final cuando ya cerraste el valor y antes del embarque para que no haya diferencias.' })" class="px-3 py-2 rounded-xl bg-white border border-[var(--border)] text-[10px] font-black uppercase tracking-wider text-[var(--text-primary)]">Cuando lo necesito</button>
+                        <button type="button" data-knowledge-key="factura_comercial" class="px-3 py-2 rounded-xl bg-[var(--accent-soft)] border border-[var(--accent-glow)] text-[10px] font-black uppercase tracking-wider text-[var(--accent)]">Ver para que sirve</button>
+                        <button type="button" data-knowledge-key="factura_comercial" data-knowledge-subtitulo="Ejemplo rapido para novatos" data-knowledge-relacion="Imagina que tu proveedor te envia una factura con producto, cantidades, precio e incoterm. Ese es el ejemplo que debes validar." class="px-3 py-2 rounded-xl bg-white border border-[var(--border)] text-[10px] font-black uppercase tracking-wider text-[var(--text-primary)]">Ver ejemplo</button>
+                        <button type="button" data-knowledge-key="factura_comercial" data-knowledge-etapa="Antes de embarcar" data-knowledge-subtitulo="Momento correcto para pedirla" data-knowledge-relacion="Pide la factura final cuando ya cerraste el valor y antes del embarque para que no haya diferencias." class="px-3 py-2 rounded-xl bg-white border border-[var(--border)] text-[10px] font-black uppercase tracking-wider text-[var(--text-primary)]">Cuando lo necesito</button>
                         <a href="incoterms-lab.jsp" class="primary-button text-[10px]">Ver quien paga envio</a>
                     </div>
                 </div>
@@ -118,9 +118,9 @@
                     <h3 class="text-sm font-black text-[var(--text-primary)] mb-1">BL / AWB</h3>
                     <p id="desc_BILL_OF_LADING" class="text-[10px] text-gray-400 font-semibold">0 documentos</p>
                     <div class="mt-4 flex flex-wrap gap-2">
-                        <button type="button" onclick="openKnowledgePanel('bill_of_lading')" class="px-3 py-2 rounded-xl bg-[var(--accent-soft)] border border-[var(--accent-glow)] text-[10px] font-black uppercase tracking-wider text-[var(--accent)]">Ver para que sirve</button>
-                        <button type="button" onclick="openKnowledgePanel('bill_of_lading', { subtitulo: 'Ejemplo rapido para novatos', relacionConTuCaso: 'Si tu carga va por mar veras un BL. Si viaja por aire veras un AWB. Ambos sirven para respaldar el transporte.' })" class="px-3 py-2 rounded-xl bg-white border border-[var(--border)] text-[10px] font-black uppercase tracking-wider text-[var(--text-primary)]">Ver ejemplo</button>
-                        <button type="button" onclick="openKnowledgePanel('bill_of_lading', { etapa: 'Antes de declarar', subtitulo: 'Momento correcto para pedirlo', relacionConTuCaso: 'Aparece despues del embarque y debe coincidir con tu factura y la mercancia real.' })" class="px-3 py-2 rounded-xl bg-white border border-[var(--border)] text-[10px] font-black uppercase tracking-wider text-[var(--text-primary)]">Cuando lo necesito</button>
+                        <button type="button" data-knowledge-key="bill_of_lading" class="px-3 py-2 rounded-xl bg-[var(--accent-soft)] border border-[var(--accent-glow)] text-[10px] font-black uppercase tracking-wider text-[var(--accent)]">Ver para que sirve</button>
+                        <button type="button" data-knowledge-key="bill_of_lading" data-knowledge-subtitulo="Ejemplo rapido para novatos" data-knowledge-relacion="Si tu carga va por mar veras un BL. Si viaja por aire veras un AWB. Ambos sirven para respaldar el transporte." class="px-3 py-2 rounded-xl bg-white border border-[var(--border)] text-[10px] font-black uppercase tracking-wider text-[var(--text-primary)]">Ver ejemplo</button>
+                        <button type="button" data-knowledge-key="bill_of_lading" data-knowledge-etapa="Antes de declarar" data-knowledge-subtitulo="Momento correcto para pedirlo" data-knowledge-relacion="Aparece despues del embarque y debe coincidir con tu factura y la mercancia real." class="px-3 py-2 rounded-xl bg-white border border-[var(--border)] text-[10px] font-black uppercase tracking-wider text-[var(--text-primary)]">Cuando lo necesito</button>
                     </div>
                 </div>
 
@@ -135,9 +135,9 @@
                     <h3 class="text-sm font-black text-[var(--text-primary)] mb-1">Certificado de Origen</h3>
                     <p id="desc_CERTIFICADO_ORIGEN" class="text-[10px] text-gray-400 font-semibold">0 documentos</p>
                     <div class="mt-4 flex flex-wrap gap-2">
-                        <button type="button" onclick="openKnowledgePanel('certificado_origen')" class="px-3 py-2 rounded-xl bg-[var(--accent-soft)] border border-[var(--accent-glow)] text-[10px] font-black uppercase tracking-wider text-[var(--accent)]">Ver para que sirve</button>
-                        <button type="button" onclick="openKnowledgePanel('certificado_origen', { subtitulo: 'Ejemplo rapido para novatos', relacionConTuCaso: 'Solo te conviene pedirlo cuando un TLC o una preferencia de origen realmente puede ayudarte a pagar menos arancel.' })" class="px-3 py-2 rounded-xl bg-white border border-[var(--border)] text-[10px] font-black uppercase tracking-wider text-[var(--text-primary)]">Ver ejemplo</button>
-                        <button type="button" onclick="openKnowledgePanel('certificado_origen', { etapa: 'Antes de declarar', subtitulo: 'Momento correcto para pedirlo', relacionConTuCaso: 'Debes pedirlo antes de declarar si piensas usar un beneficio de origen preferencial.' })" class="px-3 py-2 rounded-xl bg-white border border-[var(--border)] text-[10px] font-black uppercase tracking-wider text-[var(--text-primary)]">Cuando lo necesito</button>
+                        <button type="button" data-knowledge-key="certificado_origen" class="px-3 py-2 rounded-xl bg-[var(--accent-soft)] border border-[var(--accent-glow)] text-[10px] font-black uppercase tracking-wider text-[var(--accent)]">Ver para que sirve</button>
+                        <button type="button" data-knowledge-key="certificado_origen" data-knowledge-subtitulo="Ejemplo rapido para novatos" data-knowledge-relacion="Solo te conviene pedirlo cuando un TLC o una preferencia de origen realmente puede ayudarte a pagar menos arancel." class="px-3 py-2 rounded-xl bg-white border border-[var(--border)] text-[10px] font-black uppercase tracking-wider text-[var(--text-primary)]">Ver ejemplo</button>
+                        <button type="button" data-knowledge-key="certificado_origen" data-knowledge-etapa="Antes de declarar" data-knowledge-subtitulo="Momento correcto para pedirlo" data-knowledge-relacion="Debes pedirlo antes de declarar si piensas usar un beneficio de origen preferencial." class="px-3 py-2 rounded-xl bg-white border border-[var(--border)] text-[10px] font-black uppercase tracking-wider text-[var(--text-primary)]">Cuando lo necesito</button>
                     </div>
                 </div>
             </div>
