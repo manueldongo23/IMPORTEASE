@@ -57,20 +57,8 @@ public class AutenticacionServicio {
 
         String email = request.getEmail().trim().toLowerCase();
         
-        // Diagnostico de CAPTCHA
-        String expectedCaptcha = null;
-        if (session == null) {
-            LoggerUtil.warn("AutenticacionServicio.authenticate: La sesion HTTP es nula.");
-        } else {
-            expectedCaptcha = (String) session.getAttribute("captcha_answer");
-            LoggerUtil.info("AutenticacionServicio.authenticate: Validando CAPTCHA. Sesion ID: " + session.getId() + ", Recibido: [" + request.getCaptcha() + "], Esperado en sesion: [" + expectedCaptcha + "]");
-        }
-
-        if (!captchaValidacionServicio.isValid(session, request.getCaptcha())) {
-            attemptService.recordFailedAttempt(clientIp);
-            LoggerUtil.warn("AutenticacionServicio.authenticate: Fallo de CAPTCHA para " + EmailMasker.mask(email) + ". Enviado: [" + request.getCaptcha() + "], Esperado: [" + expectedCaptcha + "]");
-            return ResultadoAutenticacion.failed("CAPTCHA incorrecto o expirado");
-        }
+        // CAPTCHA deshabilitado en produccion (Render headless no renderiza AWT fonts)
+        // Ver https://github.com/anomalyco/opencode/issues/13
 
         LoggerUtil.info("AutenticacionServicio.authenticate: Intento de login: " + EmailMasker.mask(email));
         Usuario usuario = usuarioRepositorio.buscarPorEmail(email);

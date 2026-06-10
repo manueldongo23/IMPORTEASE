@@ -214,8 +214,8 @@
                         </div>
                     </div>
 
-                    <!-- Captcha (Verificación Humana) -->
-                    <div class="auth-captcha-box">
+                    <!-- Captcha (Verificación Humana) - Opcional si AWT no está disponible -->
+                    <div class="auth-captcha-box" id="captchaBox">
                         <div class="auth-captcha-header">
                             <span class="auth-captcha-label">Verificación Humana</span>
                             <button type="button" class="auth-captcha-refresh" id="btnRefreshCaptcha">Actualizar</button>
@@ -224,7 +224,7 @@
                             <div class="auth-captcha-img-wrap">
                                 <img id="captchaImg" src="captcha" alt="Código de verificación captcha">
                             </div>
-                            <input type="text" id="captcha" class="auth-captcha-input" placeholder="INPUT ..." maxlength="5" required autocomplete="off" aria-label="Código de verificación captcha">
+                            <input type="text" id="captcha" class="auth-captcha-input" placeholder="INPUT ..." maxlength="5" autocomplete="off" aria-label="Código de verificación captcha">
                         </div>
                     </div>
 

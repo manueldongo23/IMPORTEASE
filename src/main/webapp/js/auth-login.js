@@ -72,7 +72,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const passwordEl = document.getElementById('password');
             const captchaEl = document.getElementById('captcha');
 
-            if (!btn || !emailEl || !passwordEl || !captchaEl) return;
+            if (!btn || !emailEl || !passwordEl) return;
+
+            // Validar campos obligatorios
+            if (!emailEl.value.trim() || !passwordEl.value) {
+                showToast('Campos Requeridos', 'Ingrese email y contraseña.', false);
+                return;
+            }
 
             btn.disabled = true;
             btn.innerHTML = `<div class="auth-spinner"></div> AUTENTICANDO...`;
@@ -89,11 +95,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 const res = await fetch(endpoint, {
                     method: 'POST',
                     headers: reqHeaders,
+                    credentials: 'same-origin',
                     signal: loginController.signal,
                     body: JSON.stringify({
-                        email: emailEl.value,
+                        email: emailEl.value.trim(),
                         password: passwordEl.value,
-                        captcha: captchaEl.value
+                        captcha: captchaEl ? captchaEl.value : ''
                     })
                 });
 
@@ -103,7 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     btn.innerHTML = '✓ ACCESO AUTORIZADO';
                     showToast('Sesión Autorizada', 'Redirigiendo al cockpit de aduanas...', true);
                     setTimeout(() => {
-                        window.location.href = 'dashboard.jsp';
+                        window.location.href = (ctx ? ctx + '/' : '') + 'dashboard.jsp';
                     }, 300);
                 } else {
                     showToast('Autenticación Fallida', data.mensaje || 'Credenciales inválidas', false);
@@ -112,6 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     btn.innerHTML = `ACCEDER AL COCKPIT <svg class="arrow-icon" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>`;
                 }
             } catch (err) {
+                if (err.name === 'AbortError') return;
                 showToast('Fallo de Red', 'Error de conexión con el servidor corporativo.', false);
                 btn.disabled = false;
                 btn.innerHTML = `ACCEDER AL COCKPIT <svg class="arrow-icon" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>`;

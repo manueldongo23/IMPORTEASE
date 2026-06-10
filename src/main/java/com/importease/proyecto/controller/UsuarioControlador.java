@@ -129,14 +129,20 @@ public class UsuarioControlador extends HttpServlet {
         if (!isPublic) {
             if (!CsrfUtil.validateRequest(req, resp)) return;
         }
-        resp.setContentType("application/json");
-        PrintWriter out = resp.getWriter();
 
         try {
+            // El login handler maneja su propia respuesta completa (status, content-type, writer)
+            // No debemos abrir resp.getWriter() antes de delegarle
             if ("/login".equals(path)) {
                 loginManejadorPeticion.handle(req, resp);
+                return;
             }
-            else if ("/logout".equals(path)) {
+
+            resp.setContentType("application/json");
+            PrintWriter out = resp.getWriter();
+
+            if ("/logout".equals(path)) {
+
                 HttpSession session = req.getSession(false);
                 if (session != null) session.invalidate();
                 
