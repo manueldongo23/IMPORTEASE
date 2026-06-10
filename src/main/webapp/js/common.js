@@ -79,6 +79,7 @@ function initNeuralCanvas(canvasId, opts) {
         requestAnimationFrame(draw);
     }
     draw();
+}
 window.showNotification = function(title, message, isSuccess = false) {
     const toast = document.getElementById('toastNotification');
     const icon = document.getElementById('toastIcon');
