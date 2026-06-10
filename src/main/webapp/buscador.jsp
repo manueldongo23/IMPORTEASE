@@ -26,6 +26,7 @@
 <link href="css/hs-buscador.css" rel="stylesheet">
 </head>
 <body class="flex h-screen overflow-hidden bg-[var(--surface-0)] font-['Outfit'] text-[var(--text-primary)]">
+<%@ include file="/WEB-INF/fragments/consent-banner.jsp" %>
     <% request.setAttribute("activePage", "buscador"); %>
     <jsp:include page="/fragments/sidebar.jsp" />
 
@@ -72,11 +73,11 @@
             <div class="flex gap-4">
                 <div class="relative flex-1 group">
                     <div class="hs-search-input-wrapper">
-                        <div class="absolute left-5 flex items-center pointer-events-none text-slate-500">
+                        <div class="absolute left-5 inset-y-0 flex items-center pointer-events-none text-slate-500">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                         </div>
                         <input type="text" id="hsSearch" autocomplete="off" list="hsSearchOptions"
-                               class="hs-search-input w-full pl-12 pr-6 py-4 bg-transparent border-none outline-none text-white text-base font-bold"
+                               class="hs-search-input w-full pl-14 pr-6 py-4 bg-transparent border-none outline-none text-white text-base font-bold"
                                placeholder="<%= esEmpresa ? "Ej: aceite de pie de buey, laptop, 8517130000..." : "Ej: perfume, celular, 8517130000..." %>">
                         <datalist id="hsSearchOptions"></datalist>
                     </div>

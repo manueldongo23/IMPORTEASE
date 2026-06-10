@@ -24,7 +24,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
         registry.addMapping("/api/**")
             .allowedOrigins("http://localhost:8083")
             .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-            .allowedHeaders("*")
+            .allowedHeaders("Content-Type", "X-CSRF-TOKEN", "Authorization")
             .allowCredentials(true);
     }
 

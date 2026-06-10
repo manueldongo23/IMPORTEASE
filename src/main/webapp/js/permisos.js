@@ -79,6 +79,7 @@
             const historial = document.getElementById('historialSection');
             if (historial) {
                 historial.classList.remove('hidden');
+                setTimeout(() => historial.querySelector('h2, h3, button')?.focus(), 100);
             }
             cargarHistorial();
         } catch(e) {
@@ -93,6 +94,7 @@
         
         if (select && select.value) {
             if (btn) btn.disabled = false;
+            if (!select.selectedOptions[0]?.dataset?.json) return;
             const op = JSON.parse(select.selectedOptions[0].dataset.json);
             currentOperacion = op;
             
@@ -106,7 +108,10 @@
             if (pais) pais.textContent = op.paisOrigen || '—';
             if (cif) cif.textContent = op.cif ? `$ ${parseFloat(op.cif).toFixed(2)}` : '—';
             
-            if (details) details.classList.remove('hidden');
+            if (details) {
+                details.classList.remove('hidden');
+                setTimeout(() => details.querySelector('h2, h3, button')?.focus(), 100);
+            }
         } else {
             if (btn) btn.disabled = true;
             currentOperacion = null;
@@ -134,7 +139,10 @@
             
             if (loading) loading.classList.add('hidden');
             renderResultado(data);
-            if (resultado) resultado.classList.remove('hidden');
+            if (resultado) {
+                resultado.classList.remove('hidden');
+                setTimeout(() => resultado.querySelector('h2, h3, button')?.focus(), 100);
+            }
 
             currentSolicitudes = data.solicitudes || [];
             if (currentSolicitudes.length > 0) {
@@ -145,12 +153,18 @@
                 if (data.entidades && data.entidades.length > 0) {
                     cargarCuestionario(data.entidades[0].codigoEntidad);
                     const quest = document.getElementById('cuestionarioSection');
-                    if (quest) quest.classList.remove('hidden');
+                    if (quest) {
+                        quest.classList.remove('hidden');
+                        setTimeout(() => quest.querySelector('h2, h3, button')?.focus(), 100);
+                    }
                 }
                 
                 ['expedienteSection', 'checklistSection', 'suceSection'].forEach(id => {
                     const el = document.getElementById(id);
-                    if (el) el.classList.remove('hidden');
+                    if (el) {
+                        el.classList.remove('hidden');
+                        setTimeout(() => el.querySelector('h2, h3, button')?.focus(), 100);
+                    }
                 });
 
                 if (data.restricciones && data.restricciones.length > 0) {
@@ -294,7 +308,10 @@
             }
 
             const quest = document.getElementById('cuestionarioSection');
-            if (quest) quest.classList.remove('hidden');
+            if (quest) {
+                quest.classList.remove('hidden');
+                setTimeout(() => quest.querySelector('h2, h3, button')?.focus(), 100);
+            }
         } catch(e) {
             console.error('Error:', e);
         }
@@ -397,7 +414,10 @@
                 });
             }
             
-            if (datosSection) datosSection.classList.remove('hidden');
+            if (datosSection) {
+                datosSection.classList.remove('hidden');
+                setTimeout(() => datosSection.querySelector('h2, h3, button')?.focus(), 100);
+            }
             const pdfBtn = document.getElementById('btnPdf');
             if (pdfBtn) pdfBtn.disabled = false;
             if (btn) btn.disabled = false;

@@ -4,12 +4,23 @@ import com.importease.proyecto.service.AuthFilter;
 import com.importease.proyecto.service.CsrfFilter;
 import com.importease.proyecto.service.SecurityHeadersFilter;
 import com.importease.proyecto.service.SessionFilter;
+import com.importease.proyecto.service.XssFilter;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class FilterConfig {
+
+    @Bean
+    public FilterRegistrationBean<CacheControlFilter> cacheControlFilterRegistration() {
+        FilterRegistrationBean<CacheControlFilter> registration = new FilterRegistrationBean<>();
+        registration.setFilter(new CacheControlFilter());
+        registration.addUrlPatterns("/*");
+        registration.setName("CacheControlFilter");
+        registration.setOrder(0);
+        return registration;
+    }
 
     @Bean
     public FilterRegistrationBean<SecurityHeadersFilter> securityHeadersFilterRegistration() {
@@ -48,6 +59,16 @@ public class FilterConfig {
         registration.addUrlPatterns("*.jsp");
         registration.setName("SessionFilter");
         registration.setOrder(4);
+        return registration;
+    }
+
+    @Bean
+    public FilterRegistrationBean<XssFilter> xssFilterRegistration() {
+        FilterRegistrationBean<XssFilter> registration = new FilterRegistrationBean<>();
+        registration.setFilter(new XssFilter());
+        registration.addUrlPatterns("/*");
+        registration.setName("XssFilter");
+        registration.setOrder(5);
         return registration;
     }
 }

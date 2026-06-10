@@ -17,8 +17,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class PermisoConsultaRepositorio extends PermisoRepositorioSoporte {
 
@@ -133,29 +135,39 @@ public class PermisoConsultaRepositorio extends PermisoRepositorioSoporte {
     }
 
     public List<PreguntaPermiso> obtenerPreguntasPorEntidad(String codigoEntidad) {
+        List<PreguntaPermiso> raw = new ArrayList<>();
         PreguntaPermisoJpaRepositorio repo = getPreguntaRepo();
         if (repo != null) {
             try {
-                List<PreguntaPermiso> out = new ArrayList<>();
                 for (PreguntaPermisoEntity entity : repo.findByCodigoEntidadAndActivoTrueOrderByOrdenAsc(codigoEntidad)) {
-                    out.add(toModel(entity));
+                    raw.add(toModel(entity));
                 }
-                return out;
             } catch (Exception e) {
                 LoggerUtil.warn("Fallo obtenerPreguntasPorEntidad con JPA, fallback JDBC: " + e.getMessage());
             }
         }
 
-        List<PreguntaPermiso> lista = new ArrayList<>();
-        String sql = "SELECT * FROM preguntas_permiso WHERE codigo_entidad = ? AND activo = TRUE ORDER BY orden";
-        try (Connection con = ConexionDB.obtenerConexion();
-             PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setString(1, codigoEntidad);
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) lista.add(mapearPregunta(rs));
-        } catch (SQLException e) {
-            LoggerUtil.error("Error al obtener preguntas por entidad", e);
+        if (raw.isEmpty()) {
+            String sql = "SELECT * FROM preguntas_permiso WHERE codigo_entidad = ? AND activo = TRUE ORDER BY orden";
+            try (Connection con = ConexionDB.obtenerConexion();
+                 PreparedStatement ps = con.prepareStatement(sql)) {
+                ps.setString(1, codigoEntidad);
+                ResultSet rs = ps.executeQuery();
+                while (rs.next()) raw.add(mapearPregunta(rs));
+            } catch (SQLException e) {
+                LoggerUtil.error("Error al obtener preguntas por entidad", e);
+            }
         }
-        return lista;
+
+        return new ArrayList<>(
+            raw.stream()
+                .collect(Collectors.toMap(
+                    p -> p.getCodigoEntidad() + "|" + p.getPregunta() + "|" + p.getOrden(),
+                    p -> p,
+                    (existente, nuevo) -> existente,
+                    LinkedHashMap::new
+                ))
+                .values()
+        );
     }
 }

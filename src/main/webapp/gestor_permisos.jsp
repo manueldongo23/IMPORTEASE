@@ -28,13 +28,14 @@
     <script nonce="<%= escapeJs(String.valueOf(request.getAttribute("csp_nonce"))) %>" src="js/toast.js"></script>
 </head>
 <body class="permisos-page flex h-screen overflow-hidden bg-grid font-sans text-[var(--text-primary)]">
+    <a href="#main-content" class="skip-link" style="position:absolute;left:-9999px;top:0;z-index:9999;padding:8px 16px;background:#2563eb;color:#fff;text-decoration:none;font-weight:600;">Saltar al contenido principal</a>
     <jsp:include page="/fragments/toast.jsp" />
     <% request.setAttribute("activePage", "permisos"); %>
     <jsp:include page="/fragments/sidebar.jsp" />
         
-    <main class="flex-1 overflow-y-auto custom-scrollbar">
+    <main id="main-content" class="flex-1 overflow-y-auto custom-scrollbar" role="main">
         <!-- Top Header Bar -->
-        <header class="h-16 border-b border-[var(--border)] px-10 flex items-center justify-between bg-white/40 backdrop-blur-xl z-10 sticky top-0">
+        <header class="h-16 border-b border-[var(--border)] px-10 flex items-center justify-between bg-white/40 backdrop-blur-xl z-10 sticky top-0" role="banner">
             <div class="px-4 py-1.5 bg-[var(--accent-soft)] rounded-full flex items-center gap-3 border border-[var(--accent-glow)]">
                 <span class="w-2 h-2 rounded-full bg-[var(--accent)] animate-pulse"></span>
                 <span class="text-[11px] font-black text-[var(--accent)] uppercase tracking-widest">Permisos antes de importar</span>
@@ -43,7 +44,7 @@
 
         <!-- Main Content Area -->
         <div class="p-12 max-w-7xl mx-auto space-y-8">
-            <a href="evaluacion.jsp" class="inline-flex items-center gap-2 text-xs font-black text-[var(--accent)] hover:underline uppercase tracking-widest">&larr; Volver a Importar paso a paso</a>
+            <a href="evaluacion.jsp" role="button" class="inline-flex items-center gap-2 text-xs font-black text-[var(--accent)] hover:underline uppercase tracking-widest">&larr; Volver a Importar paso a paso</a>
 
             <!-- Page Title -->
             <div class="fade-in">
@@ -52,11 +53,11 @@
             </div>
 
             <!-- Filters tabs matching image 9 -->
-            <div id="filtersContainer" class="flex flex-wrap gap-2 fade-in delay-50">
-                <button data-filter="Pendientes" class="px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider bg-[var(--accent)] text-white transition-all permit-pill active" id="permit-pill-Pendientes">Pendientes</button>
-                <button data-filter="En trámite" class="px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider bg-white border border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--accent)] transition-all permit-pill" id="permit-pill-Tramite">En trámite</button>
-                <button data-filter="Aprobados" class="px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider bg-white border border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--accent)] transition-all permit-pill" id="permit-pill-Aprobados">Aprobados</button>
-                <button data-filter="Rechazados" class="px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider bg-white border border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--accent)] transition-all permit-pill" id="permit-pill-Rechazados">Rechazados</button>
+            <div id="filtersContainer" class="flex flex-wrap gap-2 fade-in delay-50" role="tablist">
+                <button data-filter="Pendientes" class="px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider bg-[var(--accent)] text-white transition-all permit-pill active" id="permit-pill-Pendientes" role="tab" aria-selected="true">Pendientes</button>
+                <button data-filter="En trámite" class="px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider bg-white border border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--accent)] transition-all permit-pill" id="permit-pill-Tramite" role="tab" aria-selected="false">En trámite</button>
+                <button data-filter="Aprobados" class="px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider bg-white border border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--accent)] transition-all permit-pill" id="permit-pill-Aprobados" role="tab" aria-selected="false">Aprobados</button>
+                <button data-filter="Rechazados" class="px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider bg-white border border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--accent)] transition-all permit-pill" id="permit-pill-Rechazados" role="tab" aria-selected="false">Rechazados</button>
             </div>
 
             <!-- Dynamic Permits Data Table -->
@@ -115,7 +116,7 @@
                         <tr>
                             <td colspan="6" class="px-8 py-24 text-center">
                                 <div class="flex flex-col items-center justify-center opacity-60 gap-4">
-                                    <svg class="w-16 h-16 text-[var(--text-tertiary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
+                                    <svg role="img" aria-label="Sin permisos" class="w-16 h-16 text-[var(--text-tertiary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                                     </svg>
                                     <p class="text-base font-bold italic text-[var(--text-secondary)]">No hay importaciones con permiso pendiente.</p>
@@ -161,7 +162,7 @@
             <div id="loadingState" class="hidden mb-8">
                 <div class="glass-card p-8 text-center">
                     <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-blue-50 flex items-center justify-center">
-                        <svg class="w-8 h-8 text-[var(--accent)] animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                        <svg role="img" aria-label="Cargando" class="w-8 h-8 text-[var(--accent)] animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
                     </div>
                     <h3 class="text-[var(--text-primary)] font-bold mb-1">Revisando permisos...</h3>
                     <p class="text-[var(--text-secondary)] text-xs font-semibold">Comparando el codigo del producto con reglas de entidades peruanas.</p>
@@ -276,7 +277,7 @@
                 <div class="glass-card p-6">
                     <div class="flex items-center gap-3 mb-5">
                         <div class="w-8 h-8 rounded-xl bg-[var(--surface-2)] flex items-center justify-center">
-                            <svg class="w-6 h-6 text-[var(--accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <svg role="img" aria-label="Historial" class="w-6 h-6 text-[var(--accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                             </svg>
                         </div>

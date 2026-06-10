@@ -10,7 +10,8 @@ import javax.sql.DataSource;
 
 public class ConexionDB {
     private static final Properties props = new Properties();
-    private static volatile DataSource springManagedDataSource;
+    private static volatile DataSource springDataSource;
+    private static volatile boolean springManagedDataSource = false;
     private static volatile HikariDataSource dataSource;
     private static volatile HikariDataSource dataSourceSecundario;
     private static volatile javax.servlet.ServletContext servletContext;
@@ -25,19 +26,21 @@ public class ConexionDB {
 
     private static void cargarConfiguracion() {
         try (InputStream is = ConexionDB.class.getClassLoader().getResourceAsStream("db.properties")) {
-            if (is == null) {
-                throw new IllegalStateException("db.properties no encontrado en classpath.");
+            if (is != null) {
+                props.load(is);
             }
-            props.load(is);
         } catch (Exception e) {
             throw new IllegalStateException("Error critico cargando db.properties.", e);
         }
     }
 
     private static void inicializarPoolSiNecesario() {
+        if (springManagedDataSource) return;
         if (dataSource != null) return;
+        if (springDataSource != null) return;
         synchronized (ConexionDB.class) {
             if (dataSource != null) return;
+            if (springDataSource != null) return;
             inicializarPool();
         }
     }
@@ -212,8 +215,8 @@ public class ConexionDB {
     }
 
     public static Connection obtenerConexion() throws SQLException {
-        if (springManagedDataSource != null) {
-            return springManagedDataSource.getConnection();
+        if (springDataSource != null) {
+            return springDataSource.getConnection();
         }
         if (servletContext != null) {
             try {
@@ -221,7 +224,7 @@ public class ConexionDB {
                     org.springframework.web.context.support.WebApplicationContextUtils
                     .getRequiredWebApplicationContext(servletContext);
                 DataSource ds = wac.getBean(DataSource.class);
-                springManagedDataSource = ds;
+                springDataSource = ds;
                 return ds.getConnection();
             } catch (Exception e) {
                 LoggerUtil.warn("No se pudo obtener el DataSource de Spring desde ServletContext: " + e.getMessage());
@@ -235,8 +238,8 @@ public class ConexionDB {
     }
 
     public static Connection obtenerConexionSecundaria() throws SQLException {
-        if (springManagedDataSource != null) {
-            return springManagedDataSource.getConnection();
+        if (springDataSource != null) {
+            return springDataSource.getConnection();
         }
         if (servletContext != null) {
             try {
@@ -244,7 +247,7 @@ public class ConexionDB {
                     org.springframework.web.context.support.WebApplicationContextUtils
                     .getRequiredWebApplicationContext(servletContext);
                 DataSource ds = wac.getBean(DataSource.class);
-                springManagedDataSource = ds;
+                springDataSource = ds;
                 return ds.getConnection();
             } catch (Exception e) {
                 LoggerUtil.warn("No se pudo obtener el DataSource de Spring desde ServletContext (secundario): " + e.getMessage());
@@ -258,7 +261,8 @@ public class ConexionDB {
     }
 
     public static void cerrarPool() {
-        springManagedDataSource = null;
+        springDataSource = null;
+        springManagedDataSource = false;
         if (dataSource != null) {
             dataSource.close();
             dataSource = null;
@@ -272,10 +276,15 @@ public class ConexionDB {
     }
 
     public static void setSpringManagedDataSource(DataSource dataSource) {
-        springManagedDataSource = dataSource;
+        springDataSource = dataSource;
         if (dataSource != null) {
+            springManagedDataSource = true;
             LoggerUtil.info("ConexionDB conectado a DataSource administrado por Spring Boot.");
         }
+    }
+
+    public static void setSpringManaged(boolean managed) {
+        springManagedDataSource = managed;
     }
 }
 

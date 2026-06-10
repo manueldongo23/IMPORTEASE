@@ -16,6 +16,7 @@
     </script>
 </head>
 <body class="auth-page auth-register">
+<%@ include file="/WEB-INF/fragments/consent-banner.jsp" %>
 
     <!-- Toast notification overlay -->
     <div id="toastNotification" class="auth-toast">
@@ -101,7 +102,7 @@
                         <span class="accent">Intelligence.</span>
                     </h1>
                     <p class="auth-hero-desc">
-                        Plataforma unificada para el control técnico de importaciones, clasificación arancelaria y cumplimiento regulatorio en tiempo real.
+                        Plataforma de acompañamiento que guía a usuarios sin experiencia paso a paso en su primera importación: desde elegir el producto hasta recibirlo.
                     </p>
 
                     <!-- Features list -->
@@ -237,9 +238,53 @@
                         </div>
                     </div>
 
+                    <!-- Diagnostic & Configuration -->
+                    <div style="margin: 1.5rem 0 0.75rem 0;">
+                        <span class="auth-section-header">Diagnóstico y Configuración de Perfil</span>
+                    </div>
+                    <div class="auth-grid auth-grid-2">
+                        <!-- Nivel de Experiencia -->
+                        <div class="auth-field">
+                            <div class="auth-field-header">
+                                <label class="auth-field-label" for="nivelExperiencia">Nivel de Experiencia en Importación</label>
+                            </div>
+                            <div class="auth-input-wrap">
+                                <span class="auth-input-icon">
+                                    <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"/>
+                                    </svg>
+                                </span>
+                                <select id="nivelExperiencia" class="auth-input cursor-pointer" required style="background: #ffffff; color: #1a1d2e; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 10px 14px 10px 42px; width: 100%; font-size: 0.8rem; font-weight: 600; outline: none; -webkit-appearance: none;">
+                                    <option value="NUNCA" selected>Nunca he importado (Se activarán guías y consejos)</option>
+                                    <option value="POCO">He importado 1-2 veces</option>
+                                    <option value="FRECUENTE">Importo con frecuencia (Se simplificará la interfaz)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Rol de Usuario -->
+                        <div class="auth-field">
+                            <div class="auth-field-header">
+                                <label class="auth-field-label" for="perfil">Rol en la Plataforma</label>
+                            </div>
+                            <div class="auth-input-wrap">
+                                <span class="auth-input-icon">
+                                    <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/>
+                                    </svg>
+                                </span>
+                                <select id="perfil" class="auth-input cursor-pointer" required style="background: #ffffff; color: #1a1d2e; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 10px 14px 10px 42px; width: 100%; font-size: 0.8rem; font-weight: 600; outline: none; -webkit-appearance: none;">
+                                    <option value="OPERADOR" selected>Operador (Crea y gestiona operaciones)</option>
+                                    <option value="CONSULTOR">Consultor (Permisos de solo lectura)</option>
+                                    <option value="ADMIN">Administrador (Gestión total de la cuenta)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Credentials section header -->
                     <div style="margin: 1.5rem 0 0.75rem 0;">
-                        <span class="auth-section-header">Credenciales de Administrador</span>
+                        <span class="auth-section-header">Credenciales de Acceso</span>
                     </div>
 
                     <!-- Grid for Email & Password -->
@@ -323,15 +368,16 @@
     </div>
 
     <!-- CONFIGURATION & EXTERNAL LOGIC SCRIPTS -->
-    <script nonce="<%= request.getAttribute("csp_nonce") %>">
+    <script nonce="<%= escapeJs(String.valueOf(request.getAttribute("csp_nonce"))) %>">
         window.ImportEase = window.ImportEase || {};
-        window.ImportEase.ctx = '<%= request.getContextPath() %>';
-        window.ImportEase.csrfToken = '<%= request.getAttribute("csrfToken") != null ? request.getAttribute("csrfToken") : "" %>';
-        window.ImportEase.csrfHeader = '<%= request.getAttribute("csrfHeader") != null ? request.getAttribute("csrfHeader") : "X-CSRF-TOKEN" %>';
+        window.ImportEase.ctx = '<%= escapeJs(request.getContextPath()) %>';
+        window.ImportEase.csrfToken = '<%= escapeJs(String.valueOf(request.getAttribute("csrfToken"))) %>';
+        window.ImportEase.csrfHeader = '<%= escapeJs(String.valueOf(request.getAttribute("csrfHeader"))) %>';
         window.ctx = window.ImportEase.ctx;
         window.csrfToken = window.ImportEase.csrfToken;
     </script>
-    <script nonce="<%= request.getAttribute("csp_nonce") %>" src="js/toast.js"></script>
-    <script nonce="<%= request.getAttribute("csp_nonce") %>" src="js/auth-register.js" defer></script>
+    <script nonce="<%= escapeJs(String.valueOf(request.getAttribute("csp_nonce"))) %>" src="js/toast.js"></script>
+    <script nonce="<%= escapeJs(String.valueOf(request.getAttribute("csp_nonce"))) %>" src="js/common.js" defer></script>
+    <script nonce="<%= escapeJs(String.valueOf(request.getAttribute("csp_nonce"))) %>" src="js/auth-register.js" defer></script>
 </body>
 </html>

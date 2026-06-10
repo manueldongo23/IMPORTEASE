@@ -106,4 +106,8 @@ public class UsuarioServicio {
     public List<Usuario> listarTodos() {
         return usuarioRepositorio.listarUsuarios();
     }
+
+    public boolean actualizarExperienciaYPreferencias(int id, String nivel, String preferencias) {
+        return usuarioRepositorio.actualizarExperienciaYPreferencias(id, nivel, preferencias);
+    }
 }

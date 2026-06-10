@@ -10,7 +10,7 @@ const csrfHeader = window.ImportEase?.csrfHeader || "X-CSRF-TOKEN";
 // ------------------------------------------------------------
 
 const ENTIDAD_URLS = {
-    'DIGESA': 'http://www.digesa.minsa.gob.pe/',
+    'DIGESA': 'https://www.digesa.minsa.gob.pe/',
     'MTC': 'https://portal.mtc.gob.pe/',
     'DIGEMID': 'https://www.digemid.minsa.gob.pe/',
     'SENASA': 'https://www.gob.pe/senasa',

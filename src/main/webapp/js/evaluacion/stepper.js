@@ -143,11 +143,11 @@ window.ImportEaseWizard = window.ImportEaseWizard || {};
     ];
 
     W.goToStep = function(step) {
-        step = Math.max(1, Math.min(4, step));
+        step = Math.max(1, Math.min(6, step));
         W.currentStep = step;
         
         // Hide all steps and show active
-        for (let i = 1; i <= 4; i++) {
+        for (let i = 1; i <= 6; i++) {
             const sec = document.getElementById('stepGroup-' + i);
             if (sec) {
                 sec.className = (i === step) ? "step-content active" : "step-content";
@@ -155,7 +155,7 @@ window.ImportEaseWizard = window.ImportEaseWizard || {};
         }
         
         // Update timeline
-        for (let i = 1; i <= 4; i++) {
+        for (let i = 1; i <= 6; i++) {
             const indicator = document.getElementById('stepIndicator-' + i);
             const bar = document.getElementById('timelineBar-' + i);
             
@@ -206,8 +206,8 @@ window.ImportEaseWizard = window.ImportEaseWizard || {};
                 if (i < step) {
                     bar.className = "ev-step-sep active";
                     bar.innerHTML = "";
-                } else if (i === step && (step === 2 || step === 3)) {
-                    const pct = step === 2 ? 50 : 75;
+                } else if (i === step && (step >= 2 && step <= 5)) {
+                    const pct = step === 2 ? 40 : step === 3 ? 60 : step === 4 ? 80 : 90;
                     bar.className = "ev-step-sep relative";
                     bar.innerHTML = `
                         <div class="absolute top-0 left-0 h-full bg-[#5B50F0] rounded transition-all duration-300" style="width: ${pct}%;"></div>
@@ -248,7 +248,7 @@ window.ImportEaseWizard = window.ImportEaseWizard || {};
         
         const btnNext = document.getElementById('btnNextStep');
         const btnSaveGeneral = document.getElementById('btnSaveOperationGeneral');
-        if (step === 4) {
+        if (step === 6) {
             if (btnNext) btnNext.style.display = 'none';
             if (btnSaveGeneral) btnSaveGeneral.style.display = 'flex';
             W.renderFinalSummary();
@@ -302,6 +302,14 @@ window.ImportEaseWizard = window.ImportEaseWizard || {};
         }
         if (step === 4) {
             if (W.wizardData.logFob <= 0) { return W.wizardWarning("El valor FOB comercial debe ser mayor que cero."); }
+            return true;
+        }
+        if (step === 5) {
+            // Placeholder for step 5 validation; currently always true
+            return true;
+        }
+        if (step === 6) {
+            // Final step, no additional validation required
             return true;
         }
         return true;
@@ -1017,7 +1025,7 @@ window.ImportEaseWizard = window.ImportEaseWizard || {};
             title: 'Continua la ruta',
             text: 'Avanza cuando hayas respondido lo esencial de esta pantalla.',
             label: 'Continuar',
-            step: Math.min(W.currentStep + 1, 4),
+            step: Math.min(W.currentStep + 1, 6),
             mode: 'step'
         };
 
@@ -1042,7 +1050,7 @@ window.ImportEaseWizard = window.ImportEaseWizard || {};
                 title: 'Revisa permisos',
                 text: 'El producto podria necesitar autorizacion. Confirma este punto antes de comprar o embarcar.',
                 label: 'Ver permisos',
-                step: 2,
+                step: 5,
                 mode: 'step'
             };
         } else if (docPending) {
@@ -1053,7 +1061,7 @@ window.ImportEaseWizard = window.ImportEaseWizard || {};
                 step: 4,
                 mode: 'step'
             };
-        } else if (W.currentStep >= 4) {
+        } else if (W.currentStep >= 6) {
             action = {
                 title: 'Guardar evaluacion',
                 text: 'Todo lo esencial esta armado. Guarda y continua desde Seguimiento.',
@@ -1131,6 +1139,54 @@ window.ImportEaseWizard = window.ImportEaseWizard || {};
         
         const resTotalPen = document.getElementById('resTotalPen');
         if (resTotalPen) resTotalPen.innerText = `S/ ${totalNacionalizado.toLocaleString('es-PE', {minimumFractionDigits: 2})}`;
+        
+        // Update Step 6 final summary elements
+        const fSumProdNombre = document.getElementById('fSum-prodNombre');
+        if (fSumProdNombre) fSumProdNombre.innerText = W.wizardData.prodNombre || W.wizardData.opNombre || '—';
+
+        const fSumPaisOrigen = document.getElementById('fSum-paisOrigen');
+        if (fSumPaisOrigen) fSumPaisOrigen.innerText = W.wizardData.opPaisOrigen || '—';
+
+        const fSumHs = document.getElementById('fSum-hs');
+        if (fSumHs) fSumHs.innerText = W.wizardData.selectedHS ? W.formatHSCode(W.wizardData.selectedHS.codigo) : 'No clasificado';
+
+        const fSumFob = document.getElementById('fSum-fob');
+        if (fSumFob) fSumFob.innerText = `$ ${W.wizardData.logFob.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+
+        const fSumFlete = document.getElementById('fSum-flete');
+        if (fSumFlete) fSumFlete.innerText = `$ ${W.wizardData.logFlete.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+
+        const fSumSeguro = document.getElementById('fSum-seguro');
+        if (fSumSeguro) fSumSeguro.innerText = `$ ${W.wizardData.logSeguro.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+
+        const fSumCif = document.getElementById('fSum-cif');
+        if (fSumCif) fSumCif.innerText = `$ ${cif.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+
+        const fSumTotal = document.getElementById('fSum-total');
+        if (fSumTotal) fSumTotal.innerText = `S/ ${totalNacionalizado.toLocaleString('es-PE', {minimumFractionDigits: 2})}`;
+
+        const fSumVuce = document.getElementById('fSum-vuce');
+        if (fSumVuce) {
+            if (assessment.status === 'required') {
+                fSumVuce.innerText = "Sí, requiere permiso";
+                fSumVuce.className = "font-bold text-rose-600";
+            } else if (assessment.status === 'review') {
+                fSumVuce.innerText = "Requiere revisión";
+                fSumVuce.className = "font-bold text-amber-600";
+            } else {
+                fSumVuce.innerText = "No requiere";
+                fSumVuce.className = "font-bold text-emerald-600";
+            }
+        }
+
+        const fSumEntidad = document.getElementById('fSum-entidad');
+        if (fSumEntidad) fSumEntidad.innerText = assessment.entity || 'SUNAT';
+
+        const fSumVuceEstado = document.getElementById('fSum-vuceEstado');
+        if (fSumVuceEstado) {
+            const selectEstado = document.getElementById('vuceEstado');
+            fSumVuceEstado.innerText = selectEstado ? selectEstado.options[selectEstado.selectedIndex].text : (W.wizardData.vuceEstado || 'Borrador');
+        }
         
         // Step 4 Carga Tributaria dynamic alert panel
         const step4TrafficLight = document.getElementById('step4TrafficLight');

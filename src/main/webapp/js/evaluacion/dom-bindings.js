@@ -38,6 +38,7 @@ window.ImportEaseWizard = window.ImportEaseWizard || {};
             window.location.href = 'dashboard.jsp';
         });
         bindClick('#btnSaveOperationGeneral', () => W.guardarOperacionGeneral());
+        bindClick('#btnSaveStep6', () => W.guardarOperacionGeneral());
 
         // Bind example pills
         document.querySelectorAll('#examplesPillContainer button[data-example]').forEach(el => {

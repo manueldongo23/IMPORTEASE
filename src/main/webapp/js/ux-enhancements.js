@@ -38,17 +38,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // Interceptar llamadas Fetch para el Progress Bar
-    const originalFetch = window.fetch;
-    window.fetch = async (...args) => {
-        startProgress();
-        try {
-            const response = await originalFetch(...args);
-            return response;
-        } finally {
-            stopProgress();
-        }
-    };
+    // Progress bar via monkey-patch fetch solo si nadie mas lo intercepto
+    if (typeof window.__fetchPatched === 'undefined') {
+        const originalFetch = window.fetch;
+        window.fetch = async (...args) => {
+            startProgress();
+            try {
+                const response = await originalFetch(...args);
+                return response;
+            } finally {
+                stopProgress();
+            }
+        };
+        window.__fetchPatched = true;
+    }
 
     // Interceptar form submits para Anti-Doble Clic
     document.querySelectorAll('form').forEach(form => {

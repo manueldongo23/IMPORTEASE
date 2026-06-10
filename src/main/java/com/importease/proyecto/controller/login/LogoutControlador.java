@@ -11,7 +11,7 @@ import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.Map;
 
-@WebServlet("/api/logout")
+@WebServlet(urlPatterns = {"/api/logout", "/api/usuario/logout"})
 public class LogoutControlador extends HttpServlet {
     private final JsonResponseWriter json;
 
@@ -25,6 +25,17 @@ public class LogoutControlador extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        cerrarSesion(req, resp);
+        json.write(resp, 200, Map.of("success", true));
+    }
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        cerrarSesion(req, resp);
+        resp.sendRedirect(req.getContextPath() + "/login.jsp");
+    }
+
+    private void cerrarSesion(HttpServletRequest req, HttpServletResponse resp) {
         HttpSession session = req.getSession(false);
         if (session != null) {
             session.invalidate();
@@ -44,7 +55,5 @@ public class LogoutControlador extends HttpServlet {
         resp.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
         resp.setHeader("Pragma", "no-cache");
         resp.setDateHeader("Expires", 0);
-
-        json.write(resp, 200, Map.of("success", true));
     }
 }

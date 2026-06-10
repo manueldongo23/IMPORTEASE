@@ -71,6 +71,27 @@ public class RegistroUsuarioControlador extends HttpServlet {
         String ruc = jsonObj.has("ruc") ? jsonObj.get("ruc").getAsString() : null;
         String razonSocial = jsonObj.has("razonSocial") ? jsonObj.get("razonSocial").getAsString() : null;
 
+        if (email == null || !email.matches("^[\\w.\\-]+@[\\w.\\-]+\\.[a-zA-Z]{2,}$")) {
+            json.write(resp, 400, Map.of("success", false, "mensaje", "Email invalido"));
+            return;
+        }
+        if (password == null || password.length() < 8) {
+            json.write(resp, 400, Map.of("success", false, "mensaje", "La contrasena debe tener al menos 8 caracteres"));
+            return;
+        }
+        if (password.length() > 128) {
+            json.write(resp, 400, Map.of("success", false, "mensaje", "La contrasena es demasiado larga"));
+            return;
+        }
+        if (ruc == null || !ruc.matches("\\d{11}")) {
+            json.write(resp, 400, Map.of("success", false, "mensaje", "RUC debe tener 11 digitos numericos"));
+            return;
+        }
+        if (razonSocial == null || razonSocial.trim().isEmpty() || razonSocial.length() > 200) {
+            json.write(resp, 400, Map.of("success", false, "mensaje", "Razon social invalida"));
+            return;
+        }
+
         Usuario newUser = new Usuario();
         newUser.setEmail(email);
         newUser.setPasswordHash(password);

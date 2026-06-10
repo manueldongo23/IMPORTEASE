@@ -31,8 +31,9 @@ public class CsrfFilter implements Filter {
                     normalizedUri = new java.net.URI(uri).normalize().getPath();
                 } catch (Exception e) { LoggerUtil.error("Error normalizing URI for CSRF check", e); }
 
-                boolean isPublicApi = normalizedUri.equals(context + "/api/usuario/login")
-                        || normalizedUri.equals(context + "/api/usuario/registro")
+                boolean isPublicApi = normalizedUri.equals(context + "/api/login")
+                        || normalizedUri.equals(context + "/api/usuario/login")
+                        || normalizedUri.equals(context + "/api/registro")
                         || normalizedUri.equals(context + "/api/usuario/recuperar")
                         || normalizedUri.equals(context + "/api/usuario/resetear")
                         || normalizedUri.equals(context + "/api/tendencias/registrar");
@@ -80,15 +81,13 @@ public class CsrfFilter implements Filter {
                 if (clientToken == null || clientToken.isEmpty()) {
                     clientToken = req.getParameter("csrf_token");
                 }
-                if (clientToken == null || clientToken.isEmpty()) {
-                    clientToken = req.getParameter("_csrf");
-                }
                 
                 if (session == null || !CsrfUtil.isValid(session, clientToken)) {
                     res.setStatus(HttpServletResponse.SC_FORBIDDEN);
                     res.getWriter().print("{\"error\":\"Token CSRF invalido o ausente\"}");
                     return;
                 }
+                CsrfUtil.rotateToken(session);
             }
 
             chain.doFilter(request, response);

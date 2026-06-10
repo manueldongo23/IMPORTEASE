@@ -17,6 +17,8 @@ public class UsuarioDTO {
     private String estadoRuc;
     private String condicionRuc;
     private double rucConfianza;
+    private String nivelExperiencia;
+    private String preferencias;
 
     public UsuarioDTO(Usuario u) {
         this.id = u.getId();
@@ -32,6 +34,8 @@ public class UsuarioDTO {
         this.estadoRuc = u.getEstadoRuc();
         this.condicionRuc = u.getCondicionRuc();
         this.rucConfianza = u.getRucConfianza();
+        this.nivelExperiencia = u.getNivelExperiencia();
+        this.preferencias = u.getPreferencias();
     }
 
     public int getId() { return id; }
@@ -51,5 +55,7 @@ public class UsuarioDTO {
     public String getCondicionRuc() { return condicionRuc; }
     @JsonIgnore
     public double getRucConfianza() { return rucConfianza; }
-}
 
+    public String getNivelExperiencia() { return nivelExperiencia; }
+    public String getPreferencias() { return preferencias; }
+}

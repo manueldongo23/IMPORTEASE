@@ -60,7 +60,7 @@
             <p class="ev-topbar-hint">Responde en simple. Nosotros lo traducimos a código, permisos, costos y documentos.</p>
         </div>
 
-        <!-- ── STEPPER 4 PASOS ── -->
+        <!-- ── STEPPER 6 PASOS ── -->
         <div class="ev-stepper">
             <div class="ev-step-item active" id="stepIndicator-1">
                 <div class="ev-step-num font-bold">1</div>
@@ -89,8 +89,24 @@
             <div class="ev-step-item pending" id="stepIndicator-4">
                 <div class="ev-step-num font-bold">4</div>
                 <div class="ev-step-text">
-                    <span class="ev-step-title">4. Revisión final</span>
-                    <span class="ev-step-desc">Confirmas y generamos tu ruta</span>
+                    <span class="ev-step-title">4. Documentos</span>
+                    <span class="ev-step-desc">Checklist de requisitos</span>
+                </div>
+            </div>
+            <div class="ev-step-sep" id="timelineBar-4"></div>
+            <div class="ev-step-item pending" id="stepIndicator-5">
+                <div class="ev-step-num font-bold">5</div>
+                <div class="ev-step-text">
+                    <span class="ev-step-title">5. Permisos VUCE</span>
+                    <span class="ev-step-desc">Entidad y requisitos</span>
+                </div>
+            </div>
+            <div class="ev-step-sep" id="timelineBar-5"></div>
+            <div class="ev-step-item pending" id="stepIndicator-6">
+                <div class="ev-step-num font-bold">6</div>
+                <div class="ev-step-text">
+                    <span class="ev-step-title">6. Confirmación</span>
+                    <span class="ev-step-desc">Resumen y guardado</span>
                 </div>
             </div>
         </div>
@@ -656,7 +672,7 @@
                     <!-- Header Section -->
                     <div class="flex items-start justify-between mb-8">
                         <div>
-                            <span class="text-[10px] font-black text-[#5B50F0] uppercase tracking-widest block mb-1">PASO 3 DE 4</span>
+                            <span class="text-[10px] font-black text-[#5B50F0] uppercase tracking-widest block mb-1">PASO 3 DE 6</span>
                             <h2 class="text-3xl font-black text-[#1a1d2e] tracking-tight">&#191;Cu&#225;nto podr&#237;a <span class="text-[#5B50F0]">costar</span> esta importaci&#243;n?</h2>
                             <p class="text-xs text-[#5a6275] font-semibold mt-2">Te mostramos un estimado detallado para que tomes la mejor decisi&#243;n antes de importar.</p>
                         </div>
@@ -918,7 +934,7 @@
                         <!-- Header Section -->
                         <div class="flex flex-col md:flex-row md:items-start justify-between mb-6 gap-4">
                             <div>
-                                <span class="text-[10px] font-black text-[#5B50F0] uppercase tracking-widest block mb-1">PASO 4 DE 4</span>
+                                <span class="text-[10px] font-black text-[#5B50F0] uppercase tracking-widest block mb-1">PASO 4 DE 6</span>
                                 <h2 class="text-3xl font-black text-[#1a1d2e] tracking-tight">Revisi&#243;n final</h2>
                                 <p class="text-xs text-[#5a6275] font-semibold mt-2">Revisa los documentos que necesitas y el plan final antes de guardar.</p>
                             </div>
@@ -1171,6 +1187,265 @@
                                     </div>
                                 </div>
 
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PASO 5: Permisos y VUCE -->
+                    <div id="stepGroup-5" class="step-content">
+                        <!-- Header -->
+                        <div class="flex flex-col md:flex-row md:items-start justify-between mb-6 gap-4">
+                            <div>
+                                <span class="text-[10px] font-black text-[#5B50F0] uppercase tracking-widest block mb-1">PASO 5 DE 6</span>
+                                <h2 class="text-3xl font-black text-[#1a1d2e] tracking-tight">Permisos y entidad reguladora</h2>
+                                <p class="text-xs text-[#5a6275] font-semibold mt-2">Revisa si tu producto requiere autorización previa (VUCE) antes de poder importarlo.</p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+                            <!-- Left: VUCE info -->
+                            <div class="lg:col-span-2 space-y-6">
+
+                                <!-- Card: ¿Requiere permiso? -->
+                                <div class="bg-white border border-[#e8eaf0] p-6 rounded-2xl shadow-sm">
+                                    <div class="flex items-center justify-between border-b border-[#e8eaf0] pb-2 mb-5">
+                                        <h4 class="text-[10px] font-black text-[#5B50F0] uppercase tracking-widest flex items-center gap-2">
+                                            <svg class="w-4 h-4 text-[#5B50F0]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.955 11.955 0 01.05 9.5a11.955 11.955 0 005.95 9.523A11.955 11.955 0 0012 21.95a11.955 11.955 0 0011.95-2.927A11.955 11.955 0 0023.95 9.5c0-1.27-.196-2.496-.553-3.647A11.96 11.96 0 0120.4 6a11.96 11.96 0 00-8.4-3.036z"/>
+                                            </svg>
+                                            ESTADO DE PERMISO VUCE
+                                        </h4>
+                                    </div>
+
+                                    <!-- Estado VUCE dinámico -->
+                                    <div id="vuceStatusCard5" class="p-4 rounded-xl bg-[#FFF7ED] border border-[#FED7AA] mb-4">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-8 h-8 rounded-full bg-[#FB923C] text-white flex items-center justify-center shrink-0 text-xs font-black">!</div>
+                                            <div>
+                                                <h5 class="text-xs font-black text-[#9A3412]" id="vuceStatusTitle5">Verificando requisitos...</h5>
+                                                <p class="text-[10px] text-[#C2410C] font-semibold mt-0.5" id="vuceStatusDesc5">Completa el paso anterior para conocer si necesitas permisos.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Entidad reguladora -->
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-semibold">
+                                        <div>
+                                            <label class="text-[9px] font-bold text-[#5a6275] uppercase block mb-1.5">Entidad reguladora</label>
+                                            <div id="vuceEntidadDisplay5" class="w-full bg-[#F5F3FF] border border-[#E0D9FF] rounded-xl px-4 py-3 text-xs font-bold text-[#5B50F0]">Se calculará automáticamente</div>
+                                        </div>
+                                        <div>
+                                            <label class="text-[9px] font-bold text-[#5a6275] uppercase block mb-1.5">¿Requiere VUCE?</label>
+                                            <div id="vuceRequiereDisplay5" class="w-full bg-[#F5F3FF] border border-[#E0D9FF] rounded-xl px-4 py-3 text-xs font-bold text-[#5B50F0]">Pendiente de evaluación</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Card: Acciones -->
+                                <div class="bg-white border border-[#e8eaf0] p-6 rounded-2xl shadow-sm">
+                                    <div class="flex items-center gap-2 mb-4 pb-2 border-b border-[#e8eaf0]">
+                                        <div class="w-6 h-6 bg-[#EFF6FF] text-[#5B50F0] rounded flex items-center justify-center shrink-0">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/>
+                                            </svg>
+                                        </div>
+                                        <h4 class="text-[10px] font-black text-[#5B50F0] uppercase tracking-widest">¿QUÉ DEBES HACER?</h4>
+                                    </div>
+                                    <ul class="space-y-3 text-xs font-semibold text-[#5a6275]">
+                                        <li class="flex items-start gap-2">
+                                            <span class="w-5 h-5 rounded-full bg-[#F5F3FF] text-[#5B50F0] text-[9px] font-black flex items-center justify-center shrink-0 mt-0.5">1</span>
+                                            Ingresa al portal <span class="font-black text-[#1a1d2e] mx-1">VUCE Perú</span> en <span class="font-mono text-[#5B50F0] ml-1">vuce.gob.pe</span>
+                                        </li>
+                                        <li class="flex items-start gap-2">
+                                            <span class="w-5 h-5 rounded-full bg-[#F5F3FF] text-[#5B50F0] text-[9px] font-black flex items-center justify-center shrink-0 mt-0.5">2</span>
+                                            Busca tu partida arancelaria y selecciona la entidad reguladora correspondiente.
+                                        </li>
+                                        <li class="flex items-start gap-2">
+                                            <span class="w-5 h-5 rounded-full bg-[#F5F3FF] text-[#5B50F0] text-[9px] font-black flex items-center justify-center shrink-0 mt-0.5">3</span>
+                                            Completa el formulario de solicitud y adjunta los documentos requeridos.
+                                        </li>
+                                        <li class="flex items-start gap-2">
+                                            <span class="w-5 h-5 rounded-full bg-[#F5F3FF] text-[#5B50F0] text-[9px] font-black flex items-center justify-center shrink-0 mt-0.5">4</span>
+                                            Guarda el número de trámite generado; lo necesitarás para el siguiente paso.
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <!-- Right: Consejo -->
+                            <div class="space-y-6">
+                                <div class="bg-[#F5F3FF] border border-[#E0D9FF] rounded-2xl p-5 shadow-sm">
+                                    <div class="flex items-start gap-3 mb-3">
+                                        <div class="w-9 h-9 rounded-full bg-white border border-[#E0D9FF] flex items-center justify-center text-[#5B50F0] shrink-0">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18"/>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <p class="text-[9px] font-black text-[#5B50F0] uppercase tracking-widest">Consejo ImportEase</p>
+                                            <h5 class="text-sm font-black text-[#1a1d2e] mt-1">¿Sin permiso = sin importación</h5>
+                                        </div>
+                                    </div>
+                                    <p class="text-[11px] text-[#5a6275] font-semibold leading-relaxed">
+                                        Si tu producto requiere autorización y no la obtienes antes del embarque,
+                                        la SUNAT puede retener o devolver la mercancía. Tramita el permiso con
+                                        anticipación: el plazo promedio es de <span class="font-black text-[#5B50F0]">10 a 30 días hábiles</span>.
+                                    </p>
+                                </div>
+
+                                <div class="bg-white border border-[#e8eaf0] p-5 rounded-2xl shadow-sm">
+                                    <p class="text-[9px] font-black text-[#5B50F0] uppercase tracking-widest mb-2">Entidades frecuentes</p>
+                                    <ul class="space-y-2 text-[11px] font-semibold text-[#5a6275]">
+                                        <li class="flex justify-between"><span>Alimentos y bebidas</span><span class="font-black text-[#1a1d2e]">DIGESA</span></li>
+                                        <li class="flex justify-between"><span>Medicamentos / Dispositivos</span><span class="font-black text-[#1a1d2e]">DIGEMID</span></li>
+                                        <li class="flex justify-between"><span>Telecomunicaciones</span><span class="font-black text-[#1a1d2e]">MTC</span></li>
+                                        <li class="flex justify-between"><span>Madera / Fauna silvestre</span><span class="font-black text-[#1a1d2e]">SERFOR</span></li>
+                                        <li class="flex justify-between"><span>Agro / Semillas</span><span class="font-black text-[#1a1d2e]">SENASA</span></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PASO 6: Confirmación y guardado final -->
+                    <div id="stepGroup-6" class="step-content">
+                        <!-- Header -->
+                        <div class="flex flex-col md:flex-row md:items-start justify-between mb-6 gap-4">
+                            <div>
+                                <span class="text-[10px] font-black text-[#5B50F0] uppercase tracking-widest block mb-1">PASO 6 DE 6</span>
+                                <h2 class="text-3xl font-black text-[#1a1d2e] tracking-tight">Confirmación final</h2>
+                                <p class="text-xs text-[#5a6275] font-semibold mt-2">Revisa el resumen completo de tu operación y guárdala para empezar el seguimiento.</p>
+                            </div>
+                            <!-- Badge "Todo listo" -->
+                            <div class="flex-shrink-0">
+                                <span class="inline-flex items-center gap-2 bg-[#E8F8F0] border border-[#B3EBD0] text-[#15803D] text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-full">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+                                    Listo para guardar
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Resumen dinámico (renderFinalSummary lo llena) -->
+                        <div id="finalSummaryContainer" class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-2">
+
+                            <!-- Left: resumen de datos -->
+                            <div class="lg:col-span-2 space-y-6">
+
+                                <!-- Bloque resumen general -->
+                                <div class="bg-white border border-[#e8eaf0] p-6 rounded-2xl shadow-sm">
+                                    <div class="flex items-center gap-2 mb-5 pb-2 border-b border-[#e8eaf0]">
+                                        <div class="w-6 h-6 bg-[#EFF6FF] text-[#5B50F0] rounded flex items-center justify-center shrink-0">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                            </svg>
+                                        </div>
+                                        <h4 class="text-[10px] font-black text-[#5B50F0] uppercase tracking-widest">RESUMEN DE LA OPERACIÓN</h4>
+                                    </div>
+                                    <div id="finalSummaryBody" class="space-y-3 text-xs font-semibold text-[#5a6275]">
+                                        <!-- Llenado dinámicamente por renderFinalSummary() -->
+                                        <div class="flex justify-between items-center">
+                                            <span>Producto</span>
+                                            <span class="font-bold text-[#1a1d2e]" id="fSum-prodNombre">—</span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span>País de origen</span>
+                                            <span class="font-bold text-[#1a1d2e]" id="fSum-paisOrigen">—</span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span>Partida arancelaria</span>
+                                            <span class="font-mono font-bold text-[#1a1d2e]" id="fSum-hs">—</span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span>Valor FOB</span>
+                                            <span class="font-mono font-bold text-[#1a1d2e]" id="fSum-fob">—</span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span>Flete</span>
+                                            <span class="font-mono font-bold text-[#1a1d2e]" id="fSum-flete">—</span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span>Seguro</span>
+                                            <span class="font-mono font-bold text-[#1a1d2e]" id="fSum-seguro">—</span>
+                                        </div>
+                                        <div class="flex justify-between items-center pt-3 border-t border-dashed border-[#e8eaf0]">
+                                            <span class="text-[#5B50F0] font-black text-[10px] uppercase">Valor CIF estimado</span>
+                                            <span class="font-mono font-black text-sm text-[#5B50F0]" id="fSum-cif">—</span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-[#22c55e] font-black text-[10px] uppercase">Total con tributos</span>
+                                            <span class="font-mono font-black text-sm text-[#22c55e]" id="fSum-total">—</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Bloque permisos -->
+                                <div class="bg-white border border-[#e8eaf0] p-6 rounded-2xl shadow-sm">
+                                    <div class="flex items-center gap-2 mb-4 pb-2 border-b border-[#e8eaf0]">
+                                        <div class="w-6 h-6 bg-[#EFF6FF] text-[#5B50F0] rounded flex items-center justify-center shrink-0">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.955 11.955 0 01.05 9.5c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.249-8.25-3.286z"/>
+                                            </svg>
+                                        </div>
+                                        <h4 class="text-[10px] font-black text-[#5B50F0] uppercase tracking-widest">PERMISOS Y VUCE</h4>
+                                    </div>
+                                    <div class="space-y-3 text-xs font-semibold text-[#5a6275]">
+                                        <div class="flex justify-between items-center">
+                                            <span>¿Requiere permiso?</span>
+                                            <span class="font-bold text-[#1a1d2e]" id="fSum-vuce">—</span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span>Entidad reguladora</span>
+                                            <span class="font-bold text-[#1a1d2e]" id="fSum-entidad">—</span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span>Estado del expediente</span>
+                                            <span class="font-bold text-[#1a1d2e]" id="fSum-vuceEstado">—</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Right: CTA guardar -->
+                            <div class="space-y-6">
+                                <!-- Tarjeta guardar -->
+                                <div class="bg-gradient-to-br from-[#5B50F0] to-[#7C6FF7] rounded-2xl p-6 text-white shadow-lg">
+                                    <div class="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center mb-4">
+                                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
+                                        </svg>
+                                    </div>
+                                    <h5 class="text-base font-black mb-1">¡Todo listo!</h5>
+                                    <p class="text-[11px] text-white/80 font-semibold leading-relaxed mb-5">
+                                        Guarda la operación para acceder al seguimiento, descargar el resumen PDF
+                                        y gestionar tus documentos desde el panel.
+                                    </p>
+                                    <button type="button" id="btnSaveStep6" onclick="ImportEaseWizard.guardarOperacionGeneral()"
+                                        class="w-full bg-white text-[#5B50F0] font-black text-xs uppercase tracking-widest py-3 rounded-xl hover:bg-white/90 transition-all shadow-md">
+                                        Guardar operación
+                                    </button>
+                                </div>
+
+                                <!-- Tarjeta descargar PDF -->
+                                <div class="bg-white border border-[#e8eaf0] p-5 rounded-2xl shadow-sm">
+                                    <div class="flex items-center gap-3 mb-3">
+                                        <div class="w-9 h-9 rounded-full bg-[#F5F3FF] border border-[#E0D9FF] text-[#5B50F0] flex items-center justify-center shrink-0">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <p class="text-[9px] font-black text-[#5B50F0] uppercase tracking-widest">Descarga tu resumen</p>
+                                            <h5 class="text-xs font-black text-[#1a1d2e]">Resumen PDF</h5>
+                                        </div>
+                                    </div>
+                                    <p class="text-[10px] text-[#5a6275] font-semibold leading-relaxed mb-4">
+                                        Disponible una vez guardada la operación.
+                                    </p>
+                                    <button type="button" id="btnDownloadPDF" onclick="ImportEaseWizard.descargarExpedienteFinal()"
+                                        class="w-full bg-[#F5F3FF] text-[#5B50F0] font-black text-[10px] uppercase tracking-widest py-2.5 rounded-xl border border-[#E0D9FF] hover:bg-[#EDE9FE] transition-all">
+                                        Descargar resumen PDF
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>

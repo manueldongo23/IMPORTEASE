@@ -162,7 +162,7 @@ public class HsCodeRepositorio implements IHsCodeRepositorio {
                 List<HsCodeEntity> rows = repo.buscarPrimeroPorDescripcion(
                     codigoNormalizado,
                     codigoNormalizado + "%",
-                    "%" + termino + "%"
+                    termino + "*"
                 );
                 if (!rows.isEmpty()) {
                     HsCode hs = toModel(rows.get(0));
@@ -174,14 +174,14 @@ public class HsCodeRepositorio implements IHsCodeRepositorio {
             }
         }
 
-        String sql = "SELECT * FROM hs_codes " +
-                     "WHERE codigo = ? OR codigo LIKE ? OR LOWER(descripcion_es) LIKE ? " +
+        String sql = "SELECT codigo, descripcion_es, descripcion_en, capitulo, partida, subpartida, nacional, ad_valorem, isc, igv, ipm, requiere_vuce, entidad_vuce, antidumping, restricciones, prohibiciones, tlc_china, fecha_actualizacion, id FROM hs_codes " +
+                     "WHERE codigo = ? OR codigo LIKE ? OR MATCH(descripcion_es) AGAINST(? IN BOOLEAN MODE) " +
                      "ORDER BY CASE WHEN codigo = ? THEN 0 WHEN codigo LIKE ? THEN 1 ELSE 2 END, codigo LIMIT 1";
         try (Connection con = ConexionDB.obtenerConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, codigoNormalizado);
             ps.setString(2, codigoNormalizado + "%");
-            ps.setString(3, "%" + termino + "%");
+            ps.setString(3, termino + "*");
             ps.setString(4, codigoNormalizado);
             ps.setString(5, codigoNormalizado + "%");
             ResultSet rs = ps.executeQuery();
@@ -214,7 +214,7 @@ public class HsCodeRepositorio implements IHsCodeRepositorio {
             }
         }
 
-        String sql = "SELECT * FROM hs_codes WHERE codigo = ?";
+        String sql = "SELECT codigo, descripcion_es, descripcion_en, capitulo, partida, subpartida, nacional, ad_valorem, isc, igv, ipm, requiere_vuce, entidad_vuce, antidumping, restricciones, prohibiciones, tlc_china, fecha_actualizacion, id FROM hs_codes WHERE codigo = ?";
         try (Connection con = ConexionDB.obtenerConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, key);
@@ -245,7 +245,7 @@ public class HsCodeRepositorio implements IHsCodeRepositorio {
         }
 
         List<HsCode> lista = new ArrayList<>();
-        String sql = "SELECT * FROM hs_codes ORDER BY codigo";
+        String sql = "SELECT codigo, descripcion_es, descripcion_en, capitulo, partida, subpartida, nacional, ad_valorem, isc, igv, ipm, requiere_vuce, entidad_vuce, antidumping, restricciones, prohibiciones, tlc_china, fecha_actualizacion, id FROM hs_codes ORDER BY codigo";
         try (Connection con = ConexionDB.obtenerConexion();
              PreparedStatement ps = con.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
@@ -277,15 +277,14 @@ public class HsCodeRepositorio implements IHsCodeRepositorio {
         String normalizedCode = t.replaceAll("[^\\d]", "");
         boolean hasNumericPrefix = !normalizedCode.isEmpty();
         String codeLike = normalizedCode + "%";
-        String descLike = "%" + t + "%";
-        String descPrefixLike = t + "%";
+        String matchTerm = t + "*";
 
         HsCodeJpaRepositorio repo = getHsCodeRepo();
         if (repo != null) {
             try {
                 List<HsCodeEntity> rows = hasNumericPrefix
-                    ? repo.buscarSugerenciasConPrefijo(codeLike, descLike, normalizedCode, descPrefixLike)
-                    : repo.buscarSugerenciasPorDescripcion(descLike, descPrefixLike);
+                    ? repo.buscarSugerenciasConPrefijo(codeLike, matchTerm, normalizedCode)
+                    : repo.buscarSugerenciasPorDescripcion(matchTerm);
 
                 for (HsCodeEntity row : rows) {
                     HsCode hs = toModel(row);
@@ -298,31 +297,33 @@ public class HsCodeRepositorio implements IHsCodeRepositorio {
             }
         }
 
+        String cols = "codigo, descripcion_es, descripcion_en, capitulo, partida, subpartida, nacional, ad_valorem, isc, igv, ipm, requiere_vuce, entidad_vuce, antidumping, restricciones, prohibiciones, tlc_china, fecha_actualizacion, id";
         String sql = hasNumericPrefix
-            ? "SELECT * FROM hs_codes " +
-               "WHERE (codigo LIKE ? OR LOWER(descripcion_es) LIKE ?) " +
+            ? "SELECT " + cols + " FROM hs_codes " +
+               "WHERE (codigo LIKE ? OR MATCH(descripcion_es) AGAINST(? IN BOOLEAN MODE)) " +
                "ORDER BY CASE " +
                "WHEN codigo = ? THEN 0 " +
                "WHEN codigo LIKE ? THEN 1 " +
-               "WHEN LOWER(descripcion_es) LIKE ? THEN 2 " +
+               "WHEN MATCH(descripcion_es) AGAINST(? IN BOOLEAN MODE) THEN 2 " +
                "ELSE 3 END, codigo LIMIT 20"
-            : "SELECT * FROM hs_codes " +
-               "WHERE LOWER(descripcion_es) LIKE ? " +
+            : "SELECT " + cols + " FROM hs_codes " +
+               "WHERE MATCH(descripcion_es) AGAINST(? IN BOOLEAN MODE) " +
                "ORDER BY CASE " +
-               "WHEN LOWER(descripcion_es) LIKE ? THEN 0 " +
+               "WHEN MATCH(descripcion_es) AGAINST(? IN BOOLEAN MODE) THEN 0 " +
                "ELSE 1 END, codigo LIMIT 20";
 
         try (Connection con = ConexionDB.obtenerConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
+            // matchTerm already declared above, reuse it
             if (hasNumericPrefix) {
                 ps.setString(1, codeLike);
-                ps.setString(2, descLike);
+                ps.setString(2, matchTerm);
                 ps.setString(3, normalizedCode);
                 ps.setString(4, codeLike);
-                ps.setString(5, descPrefixLike);
+                ps.setString(5, matchTerm);
             } else {
-                ps.setString(1, descLike);
-                ps.setString(2, descPrefixLike);
+                ps.setString(1, matchTerm);
+                ps.setString(2, matchTerm);
             }
 
             try (ResultSet rs = ps.executeQuery()) {

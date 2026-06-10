@@ -157,7 +157,7 @@
 .ev-aside-ruta-person { width:42px; height:42px; border-radius:50%; background:#dcfce7; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
 
 /* Ocultar el sidebar en evaluacion.jsp */
-#appSidebar { display: none !important; }
+#appSidebar { display: none; }
 
 /* Card custom styles */
 .route-choice-card {
@@ -259,10 +259,10 @@
 
 /* Background gradient fixes for sidebar cards */
 .ev-card-revisando {
-    background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%) !important;
+    background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
 }
 .ev-card-sigue {
-    background-color: rgba(240, 253, 244, 0.6) !important;
+    background-color: rgba(240, 253, 244, 0.6);
 }
 
 /* ==========================================================================

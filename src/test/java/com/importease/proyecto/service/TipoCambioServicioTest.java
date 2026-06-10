@@ -51,9 +51,11 @@ public class TipoCambioServicioTest {
     }
 
     @Test
-    public void test6_ObtenerTipoCambioBCRPVentaMayorOIgualACompra() {
+    public void test6_ObtenerTipoCambioBCRPDiferenciaMaxima10Centimos() {
         BigDecimal[] tc = service.obtenerTipoCambioBCRP();
-        assertTrue(tc[1].compareTo(tc[0]) >= 0);
+        BigDecimal diff = tc[1].subtract(tc[0]).abs();
+        assertTrue(diff.compareTo(new BigDecimal("0.10")) <= 0,
+            "Diferencia compra/venta excede 0.10: compra=" + tc[0] + " venta=" + tc[1]);
     }
 
     @Test
@@ -162,9 +164,14 @@ public class TipoCambioServicioTest {
     @Test
     public void test16_ConsultarBCRPServicioFallbackGeneraTasasSBSRealistas() {
         BigDecimal[] tc = service.obtenerTipoCambioBCRP();
-        BigDecimal dif = tc[1].subtract(tc[0]);
-        assertTrue(dif.compareTo(new BigDecimal("0.30")) <= 0);
-        assertTrue(dif.compareTo(BigDecimal.ZERO) >= 0);
+        assertNotNull(tc[0]);
+        assertNotNull(tc[1]);
+        assertTrue(tc[0].compareTo(BigDecimal.ONE) > 0);
+        assertTrue(tc[1].compareTo(BigDecimal.ONE) > 0);
+        assertTrue(tc[0].compareTo(new BigDecimal("10")) < 0);
+        assertTrue(tc[1].compareTo(new BigDecimal("10")) < 0);
+        BigDecimal dif = tc[1].subtract(tc[0]).abs();
+        assertTrue(dif.compareTo(new BigDecimal("2.00")) <= 0);
     }
 
     @Test

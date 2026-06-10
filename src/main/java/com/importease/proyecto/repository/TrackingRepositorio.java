@@ -122,7 +122,7 @@ public class TrackingRepositorio {
         }
 
         List<Map<String, Object>> lista = new ArrayList<>();
-        String sql = "SELECT * FROM tracking_envios WHERE usuario_id = ? ORDER BY fecha_creacion DESC LIMIT 50";
+        String sql = "SELECT id, usuario_id, operacion_id, proveedor, tracking_number, bl_number, container_number, eta, estado_actual, source, source_type, confidence, ultima_actualizacion, fecha_creacion FROM tracking_envios WHERE usuario_id = ? ORDER BY fecha_creacion DESC LIMIT 50";
         try (Connection con = ConexionDB.obtenerConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, usuarioId != null ? usuarioId : -1);
@@ -147,7 +147,7 @@ public class TrackingRepositorio {
             }
         }
 
-        String sql = "SELECT * FROM tracking_envios WHERE id = ? AND usuario_id = ? LIMIT 1";
+        String sql = "SELECT id, usuario_id, operacion_id, proveedor, tracking_number, bl_number, container_number, eta, estado_actual, source, source_type, confidence, ultima_actualizacion, fecha_creacion FROM tracking_envios WHERE id = ? AND usuario_id = ? LIMIT 1";
         try (Connection con = ConexionDB.obtenerConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setLong(1, id);
@@ -177,7 +177,7 @@ public class TrackingRepositorio {
         }
 
         List<Map<String, Object>> lista = new ArrayList<>();
-        String sql = "SELECT e.* FROM tracking_eventos e " +
+        String sql = "SELECT e.id, e.tracking_id, e.fecha_evento, e.ubicacion, e.estado, e.descripcion, e.fuente, e.source_type, e.confidence FROM tracking_eventos e " +
                 "JOIN tracking_envios t ON t.id = e.tracking_id " +
                 "WHERE e.tracking_id = ? AND t.usuario_id = ? ORDER BY e.fecha_evento ASC, e.id ASC";
         try (Connection con = ConexionDB.obtenerConexion();

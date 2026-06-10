@@ -18,6 +18,8 @@ public class Usuario {
     private String estadoRuc;
     private String condicionRuc;
     private double rucConfianza;
+    private String nivelExperiencia = "NUNCA";
+    private String preferencias = "{\"ocultarConsejos\":false}";
 
     public Usuario() {}
 
@@ -51,5 +53,8 @@ public class Usuario {
     public void setCondicionRuc(String condicionRuc) { this.condicionRuc = condicionRuc; }
     public double getRucConfianza() { return rucConfianza; }
     public void setRucConfianza(double rucConfianza) { this.rucConfianza = rucConfianza; }
+    public String getNivelExperiencia() { return nivelExperiencia; }
+    public void setNivelExperiencia(String nivelExperiencia) { this.nivelExperiencia = nivelExperiencia; }
+    public String getPreferencias() { return preferencias; }
+    public void setPreferencias(String preferencias) { this.preferencias = preferencias; }
 }
-

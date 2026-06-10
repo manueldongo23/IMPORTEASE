@@ -14,29 +14,27 @@ public interface HsCodeJpaRepositorio extends JpaRepository<HsCodeEntity, Intege
 
     List<HsCodeEntity> findAllByOrderByCodigoAsc();
 
-    @Query(value = "SELECT * FROM hs_codes " +
-                   "WHERE codigo = :codigoExact OR codigo LIKE :codigoLike OR LOWER(descripcion_es) LIKE :descLike " +
+    @Query(value = "SELECT codigo, descripcion_es, descripcion_en, capitulo, partida, subpartida, nacional, ad_valorem, isc, igv, ipm, requiere_vuce, entidad_vuce, antidumping, restricciones, prohibiciones, tlc_china, fecha_actualizacion, id FROM hs_codes " +
+                   "WHERE codigo = :codigoExact OR codigo LIKE :codigoLike OR MATCH(descripcion_es) AGAINST(:matchTerm IN BOOLEAN MODE) " +
                    "ORDER BY CASE WHEN codigo = :codigoExact THEN 0 WHEN codigo LIKE :codigoLike THEN 1 ELSE 2 END, codigo " +
                    "LIMIT 1", nativeQuery = true)
     List<HsCodeEntity> buscarPrimeroPorDescripcion(@Param("codigoExact") String codigoExact,
                                                    @Param("codigoLike") String codigoLike,
-                                                   @Param("descLike") String descLike);
+                                                   @Param("matchTerm") String matchTerm);
 
-    @Query(value = "SELECT * FROM hs_codes " +
-                   "WHERE (codigo LIKE :codeLike OR LOWER(descripcion_es) LIKE :descLike) " +
+    @Query(value = "SELECT codigo, descripcion_es, descripcion_en, capitulo, partida, subpartida, nacional, ad_valorem, isc, igv, ipm, requiere_vuce, entidad_vuce, antidumping, restricciones, prohibiciones, tlc_china, fecha_actualizacion, id FROM hs_codes " +
+                   "WHERE (codigo LIKE :codeLike OR MATCH(descripcion_es) AGAINST(:matchTerm IN BOOLEAN MODE)) " +
                    "ORDER BY CASE " +
                    "WHEN codigo = :normalizedCode THEN 0 " +
                    "WHEN codigo LIKE :codeLike THEN 1 " +
-                   "WHEN LOWER(descripcion_es) LIKE :descPrefixLike THEN 2 " +
+                   "WHEN MATCH(descripcion_es) AGAINST(:matchTerm IN BOOLEAN MODE) THEN 2 " +
                    "ELSE 3 END, codigo LIMIT 20", nativeQuery = true)
     List<HsCodeEntity> buscarSugerenciasConPrefijo(@Param("codeLike") String codeLike,
-                                                   @Param("descLike") String descLike,
-                                                   @Param("normalizedCode") String normalizedCode,
-                                                   @Param("descPrefixLike") String descPrefixLike);
+                                                   @Param("matchTerm") String matchTerm,
+                                                   @Param("normalizedCode") String normalizedCode);
 
-    @Query(value = "SELECT * FROM hs_codes " +
-                   "WHERE LOWER(descripcion_es) LIKE :descLike " +
-                   "ORDER BY CASE WHEN LOWER(descripcion_es) LIKE :descPrefixLike THEN 0 ELSE 1 END, codigo LIMIT 20", nativeQuery = true)
-    List<HsCodeEntity> buscarSugerenciasPorDescripcion(@Param("descLike") String descLike,
-                                                       @Param("descPrefixLike") String descPrefixLike);
+    @Query(value = "SELECT codigo, descripcion_es, descripcion_en, capitulo, partida, subpartida, nacional, ad_valorem, isc, igv, ipm, requiere_vuce, entidad_vuce, antidumping, restricciones, prohibiciones, tlc_china, fecha_actualizacion, id FROM hs_codes " +
+                   "WHERE MATCH(descripcion_es) AGAINST(:matchTerm IN BOOLEAN MODE) " +
+                   "ORDER BY codigo LIMIT 20", nativeQuery = true)
+    List<HsCodeEntity> buscarSugerenciasPorDescripcion(@Param("matchTerm") String matchTerm);
 }

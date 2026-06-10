@@ -41,10 +41,9 @@ public class SessionFilter implements Filter {
         
         try {
             if (loggedIn) {
-                if (uri.contains("/admin/")) {
-                    int usuarioId = (int) session.getAttribute("usuarioId");
-                    Usuario u = usuarioDao.buscarPorId(usuarioId);
-                    if (u == null || !"admin".equalsIgnoreCase(u.getPerfil())) {
+                String perfil = (String) session.getAttribute("usuarioPerfil");
+                if (uri.startsWith(contextPath + "/admin/")) {
+                    if (!"admin".equalsIgnoreCase(perfil)) {
                         res.sendRedirect(req.getContextPath() + "/dashboard.jsp");
                         return;
                     }

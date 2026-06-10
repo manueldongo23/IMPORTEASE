@@ -51,7 +51,7 @@
 </script>
 
 <link rel="stylesheet" href="css/sidebar.css">
-<script src="js/ux-enhancements.js" defer></script>
+<script nonce="<%= escapeJs(String.valueOf(request.getAttribute("csp_nonce"))) %>" src="js/ux-enhancements.js" defer></script>
 <style nonce="<%= escapeJs(String.valueOf(request.getAttribute("csp_nonce"))) %>">
 .sidebar-tools-toggle {
     cursor: pointer;
@@ -105,29 +105,29 @@
     <div class="px-5 py-5 border-b border-[var(--nav-border)] flex items-center justify-between">
         <a href="dashboard.jsp" class="flex items-center gap-3 min-w-0">
             <div class="w-10 h-10 rounded-xl bg-[#EEF0FB] flex items-center justify-center shrink-0">
-                <svg class="w-6 h-6 text-[#5B50F0]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <svg role="img" aria-label="Logo" class="w-6 h-6 text-[#5B50F0]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
                     <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
                     <line x1="12" y1="22.08" x2="12" y2="12"></line>
                 </svg>
             </div>
             <div class="min-w-0">
-                <h1 class="font-black text-base tracking-tight text-[#1a1d2e]">ImportEase</h1>
+                <div class="font-black text-base tracking-tight text-[#1a1d2e]">ImportEase</div>
                 <p class="text-[10px] text-[var(--nav-muted)] font-semibold">Plataforma Aduanera</p>
             </div>
         </a>
-        <button class="mobile-toggle flex lg:hidden items-center justify-center w-8 h-8 rounded-xl bg-[#f3f4fd] hover:bg-[#eef0fb] transition-all border border-[#e5e8f5] text-[#5B50F0]">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <button class="mobile-toggle flex lg:hidden items-center justify-center w-8 h-8 rounded-xl bg-[#f3f4fd] hover:bg-[#eef0fb] transition-all border border-[#e5e8f5] text-[#5B50F0]" aria-label="Cerrar menú">
+            <svg role="img" aria-label="Cerrar" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
             </svg>
         </button>
     </div>
 
     <!-- Navigation -->
-    <nav class="flex-1 px-3 py-4 overflow-y-auto custom-scrollbar flex flex-col gap-1">
+    <nav class="flex-1 px-3 py-4 overflow-y-auto custom-scrollbar flex flex-col gap-1" role="navigation" aria-label="Navegación principal">
         <% boolean isInicio = "dashboard".equals(activePage); %>
         <a href="dashboard.jsp" class="sidebar-nav-item <%= isInicio ? "is-active" : "" %>">
-            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <svg role="img" aria-label="Inicio" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/>
             </svg>
             <span>Inicio</span>
@@ -135,7 +135,7 @@
 
         <% boolean isMiImportacion = "wizard".equals(activePage) || "historial".equals(activePage) || "seguimiento".equals(activePage); %>
         <a href="seguimiento.jsp" class="sidebar-nav-item <%= isMiImportacion ? "is-active" : "" %>">
-            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <svg role="img" aria-label="Mi importación" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"/>
             </svg>
             <span>Mi importación</span>
@@ -143,7 +143,7 @@
 
         <% boolean isBuscar = "buscador".equals(activePage) || "observatorio".equals(activePage); %>
         <a href="buscador.jsp" class="sidebar-nav-item <%= isBuscar ? "is-active" : "" %>">
-            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <svg role="img" aria-label="Buscar" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
             </svg>
             <span>Buscar producto / código</span>
@@ -151,7 +151,7 @@
 
         <% boolean isDocPerm = "documentos".equals(activePage) || "permisos".equals(activePage); %>
         <a href="documentos.jsp" class="sidebar-nav-item <%= isDocPerm ? "is-active" : "" %>">
-            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <svg role="img" aria-label="Documentos y permisos" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/>
             </svg>
             <span>Documentos y permisos</span>
@@ -159,7 +159,7 @@
 
         <% boolean isCostos = "calculadora".equals(activePage) || "comparador".equals(activePage) || "incoterms".equals(activePage); %>
         <a href="calculadora-negocio.jsp" class="sidebar-nav-item <%= isCostos ? "is-active" : "" %>">
-            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <svg role="img" aria-label="Costos" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
             <span>Costos</span>
@@ -173,7 +173,7 @@
         <div class="sidebar-tools-list">
             <% boolean isHs = "buscador".equals(activePage); %>
             <a href="buscador.jsp" class="sidebar-nav-item sidebar-nav-item-sm <%= isHs ? "is-active" : "" %>">
-                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <svg role="img" aria-label="Buscar código" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
                 </svg>
                 <span>Buscar código</span>
@@ -181,7 +181,7 @@
 
             <% boolean isPermisos = "permisos".equals(activePage); %>
             <a href="gestor_permisos.jsp" class="sidebar-nav-item sidebar-nav-item-sm <%= isPermisos ? "is-active" : "" %>">
-                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <svg role="img" aria-label="Permisos" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/>
                 </svg>
                 <span>Permisos</span>
@@ -189,7 +189,7 @@
 
             <% boolean isCalculadora = "calculadora".equals(activePage); %>
             <a href="calculadora-negocio.jsp" class="sidebar-nav-item sidebar-nav-item-sm <%= isCalculadora ? "is-active" : "" %>">
-                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <svg role="img" aria-label="Calcular impuestos" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
                 <span>Calcular impuestos</span>
@@ -197,7 +197,7 @@
 
             <% boolean isObservatorio = "observatorio".equals(activePage); %>
             <a href="observatorio-hs.jsp" class="sidebar-nav-item sidebar-nav-item-sm <%= isObservatorio ? "is-active" : "" %>">
-                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <svg role="img" aria-label="Tendencias" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zm5.25 0c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v6.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125v-6.75z"/>
                 </svg>
                 <span>Tendencias</span>
@@ -205,7 +205,7 @@
 
             <% boolean isIncoterms = "incoterms".equals(activePage); %>
             <a href="incoterms-lab.jsp" class="sidebar-nav-item sidebar-nav-item-sm <%= isIncoterms ? "is-active" : "" %>">
-                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <svg role="img" aria-label="Incoterms" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9m-4.5 16.5V21m0-21v3"/>
                 </svg>
                 <span>Incoterms</span>
@@ -213,7 +213,7 @@
 
             <% boolean isComparador = "comparador".equals(activePage); %>
             <a href="comparador-escenarios.jsp" class="sidebar-nav-item sidebar-nav-item-sm <%= isComparador ? "is-active" : "" %>">
-                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <svg role="img" aria-label="Comparar escenarios" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A1.5 1.5 0 016 3.75h15a1.5 1.5 0 011.5 1.5v9a1.5 1.5 0 01-1.5 1.5h-15a1.5 1.5 0 01-1.5-1.5V6z"/>
                 </svg>
                 <span>Comparar escenarios</span>
@@ -223,7 +223,7 @@
         <div class="sidebar-divider"></div>
 
         <button type="button" class="sidebar-nav-item" id="sidebar-help-nav-item">
-            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <svg role="img" aria-label="Ayuda" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z"/>
             </svg>
             <span>Ayuda</span>
@@ -234,7 +234,7 @@
     <div class="sidebar-support-card">
         <div class="sidebar-support-avatar-wrap">
             <div class="sidebar-support-avatar">
-                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg role="img" aria-label="Soporte" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M4 18a8 8 0 0 1 16 0" />
                     <circle cx="12" cy="10" r="4" />
                     <path d="M8 10a4 4 0 0 1 8 0" />
@@ -247,7 +247,7 @@
         <div class="sidebar-support-content">
             <span class="sidebar-support-title">¿Necesitas ayuda?</span>
             <span class="sidebar-support-subtitle">Estamos aquí para acompañarte</span>
-            <a href="#" class="sidebar-support-link" id="sidebar-support-contact-btn">
+            <a href="#" class="sidebar-support-link" id="sidebar-support-contact-btn" role="button">
                 Contactar soporte &rarr;
             </a>
         </div>
@@ -426,19 +426,20 @@ if (document.readyState === 'loading') {
 }
 
 function confirmLogout() {
-    if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
+    if (confirm('Deseas cerrar sesion?')) {
         doLogout();
     }
 }
 
 async function doLogout() {
+    const ctxPath = '<%= escapeJs(request.getContextPath()) %>';
     try {
-        const ctxPath = '<%= escapeJs(request.getContextPath()) %>';
-        await fetch(ctxPath + '/api/usuario/logout', {
+        await fetch(ctxPath + '/api/logout', {
             method: 'POST',
-            headers: { 'X-CSRF-TOKEN': window.csrfToken || '' }
+            headers: { 'X-CSRF-TOKEN': window.csrfToken || '' },
+            credentials: 'same-origin'
         });
     } catch (e) {}
-    window.location.href = '<%= escapeJs(request.getContextPath()) %>/login.jsp';
+    window.location.replace(ctxPath + '/login.jsp');
 }
 </script>

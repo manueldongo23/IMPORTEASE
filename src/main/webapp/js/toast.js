@@ -2,6 +2,8 @@ function showNotification(title, message, isSuccess) {
     if (isSuccess === void 0) { isSuccess = false; }
     var toast = document.getElementById('toastNotification');
     if (!toast) return;
+    toast.setAttribute('role', 'alert');
+    toast.setAttribute('aria-live', 'polite');
     var icon = document.getElementById('toastIcon');
     var tTitle = document.getElementById('toastTitle');
     var tMsg = document.getElementById('toastMessage');

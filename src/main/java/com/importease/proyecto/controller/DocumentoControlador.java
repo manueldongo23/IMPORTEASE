@@ -127,11 +127,11 @@ public class DocumentoControlador extends HttpServlet {
                 }
             } catch (SecurityException e) {
                 resp.setStatus(403);
-                resp.getWriter().print(gson.toJson(Map.of("error", e.getMessage())));
+                resp.getWriter().print(gson.toJson(Map.of("error", "Acceso denegado al documento")));
                 return;
             } catch (Exception e) {
                 resp.setStatus(404);
-                resp.getWriter().print(gson.toJson(Map.of("error", e.getMessage())));
+                resp.getWriter().print(gson.toJson(Map.of("error", "Documento no encontrado")));
                 return;
             }
             String mimeType = getServletContext().getMimeType(file.getAbsolutePath());

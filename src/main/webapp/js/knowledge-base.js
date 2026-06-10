@@ -136,7 +136,7 @@ function ensureKnowledgePanel() {
     const wrapper = document.createElement('div');
     wrapper.innerHTML = `
         <div id="knowledgeOverlay" class="knowledge-overlay hidden"></div>
-        <aside id="knowledgeDrawer" class="knowledge-drawer hidden" aria-hidden="true">
+        <aside id="knowledgeDrawer" class="knowledge-drawer hidden" role="dialog" aria-modal="true" aria-labelledby="knowledgeTitle" aria-describedby="knowledgeSubtitle" aria-hidden="true">
             <div class="knowledge-drawer__header">
                 <div>
                     <p id="knowledgeStage" class="knowledge-stage">Antes de comprar</p>
@@ -212,6 +212,7 @@ function openKnowledgePanel(key, overrides = {}) {
     if (!item) return;
     ensureKnowledgePanel();
     fillKnowledgePanel(item, overrides);
+    document.body.classList.add('knowledge-modal-open');
     document.getElementById('knowledgeOverlay').classList.remove('hidden');
     const drawer = document.getElementById('knowledgeDrawer');
     drawer.classList.remove('hidden');
@@ -225,6 +226,7 @@ function closeKnowledgePanel() {
     if (!overlay || !drawer) return;
     overlay.classList.add('hidden');
     drawer.classList.remove('is-open');
+    document.body.classList.remove('knowledge-modal-open');
     window.setTimeout(() => {
         drawer.classList.add('hidden');
         drawer.setAttribute('aria-hidden', 'true');

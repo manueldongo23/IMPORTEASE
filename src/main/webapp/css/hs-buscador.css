@@ -94,7 +94,7 @@
 .hs-search-input {
     background: transparent !important;
     border: none !important;
-    outline: none !important;
+    outline: none;
     color: #FFFFFF !important;
     font-size: 1.05rem !important;
     font-weight: 600 !important;

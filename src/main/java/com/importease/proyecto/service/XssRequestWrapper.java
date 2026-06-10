@@ -74,6 +74,9 @@ public class XssRequestWrapper extends HttpServletRequestWrapper {
 
             // Avoid onload= expressions
             value = value.replaceAll("(?i)onload(.*?)=", "");
+
+            // Avoid onfocus= expressions
+            value = value.replaceAll("(?i)onfocus(.*?)=", "");
         }
         return value;
     }

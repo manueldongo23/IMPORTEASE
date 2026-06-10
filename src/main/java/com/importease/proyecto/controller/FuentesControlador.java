@@ -131,7 +131,7 @@ public class FuentesControlador extends HttpServlet {
             write(resp, RespuestaEnvoltorio.error("ENDPOINT_NOT_FOUND", "Endpoint de fuentes no encontrado.", "BD_LOCAL", false));
         } catch (IllegalArgumentException e) {
             resp.setStatus(400);
-            write(resp, RespuestaEnvoltorio.error("FUENTES_BAD_REQUEST", e.getMessage(), "BD_LOCAL", false));
+            write(resp, RespuestaEnvoltorio.error("FUENTES_BAD_REQUEST", "Solicitud de fuente invalida", "BD_LOCAL", false));
         } catch (Exception e) {
             resp.setStatus(500);
             write(resp, RespuestaEnvoltorio.error("FUENTES_MUTATION_ERROR", "No se pudo procesar la fuente solicitada.", "BD_LOCAL", false));

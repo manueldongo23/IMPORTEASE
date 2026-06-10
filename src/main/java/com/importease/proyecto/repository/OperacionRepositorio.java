@@ -85,7 +85,7 @@ public class OperacionRepositorio implements IOperacionRepositorio {
             }
         }
 
-        String sql = "SELECT * FROM operaciones WHERE id = ?";
+        String sql = "SELECT id, usuario_id, producto_desc, hs_code, pais_origen, incoterm, fob, flete, seguro, cif, tipo_cambio, ad_valorem_aplicado, isc_aplicado, igv_aplicado, ipm_aplicado, percepcion_aplicada, total_impuestos, canal_asignado, estado, numero_dam, fecha_numeracion, fecha_creacion FROM operaciones WHERE id = ?";
         try (Connection con = ConexionDB.obtenerConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, id);
@@ -113,7 +113,7 @@ public class OperacionRepositorio implements IOperacionRepositorio {
         }
 
         List<Operacion> lista = new ArrayList<>();
-        String sql = "SELECT * FROM operaciones WHERE usuario_id = ? ORDER BY fecha_creacion DESC";
+        String sql = "SELECT id, usuario_id, producto_desc, hs_code, pais_origen, incoterm, fob, flete, seguro, cif, tipo_cambio, ad_valorem_aplicado, isc_aplicado, igv_aplicado, ipm_aplicado, percepcion_aplicada, total_impuestos, canal_asignado, estado, numero_dam, fecha_numeracion, fecha_creacion FROM operaciones WHERE usuario_id = ? ORDER BY fecha_creacion DESC";
         try (Connection con = ConexionDB.obtenerConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, usuarioId);

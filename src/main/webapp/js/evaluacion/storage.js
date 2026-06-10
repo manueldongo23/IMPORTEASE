@@ -23,7 +23,7 @@ window.ImportEaseWizard = window.ImportEaseWizard || {};
             W.wizardData.dynamicAnswers = Object.assign({}, W.wizardData.dynamicAnswers || {});
             
             const rawDraft = JSON.stringify(W.wizardData);
-            localStorage.setItem(W.WIZARD_DRAFT_KEY, rawDraft);
+            sessionStorage.setItem(W.WIZARD_DRAFT_KEY, rawDraft);
             W.updateAutosaveStatus(W.wizardData.savedAt);
 
             const payload = {
@@ -207,7 +207,7 @@ window.ImportEaseWizard = window.ImportEaseWizard || {};
                     </div>
                     <div class="flex justify-between items-center text-xs font-semibold">
                         <span class="text-[var(--text-tertiary)]">Último paso guardado:</span>
-                        <span class="px-2 py-0.5 rounded bg-purple-100 text-purple-700 text-[10px] font-black uppercase">Paso ${stepNum} de 4</span>
+                        <span class="px-2 py-0.5 rounded bg-purple-100 text-purple-700 text-[10px] font-black uppercase">Paso ${stepNum} de 6</span>
                     </div>
                     <div class="flex justify-between items-center text-xs font-semibold">
                         <span class="text-[var(--text-tertiary)]">Guardado el:</span>
@@ -313,7 +313,7 @@ window.ImportEaseWizard = window.ImportEaseWizard || {};
         W.updateSidebar();
 
         const restoredStep = Number(draft.currentStep);
-        if (Number.isFinite(restoredStep) && restoredStep >= 1 && restoredStep <= 4) {
+        if (Number.isFinite(restoredStep) && restoredStep >= 1 && restoredStep <= 6) {
             W.goToStep(restoredStep);
         } else {
             W.updateAutosaveStatus(W.wizardData.savedAt);
@@ -373,7 +373,7 @@ window.ImportEaseWizard = window.ImportEaseWizard || {};
         try {
             const params = new URLSearchParams(window.location.search || '');
             const step = Number(params.get('step'));
-            if (Number.isFinite(step) && step >= 1 && step <= 4) {
+            if (Number.isFinite(step) && step >= 1 && step <= 6) {
                 W.goToStep(step);
             }
         } catch (e) {}

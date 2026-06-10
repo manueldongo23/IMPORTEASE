@@ -28,7 +28,7 @@ public class UsuarioRepositorio implements IUsuarioRepositorio {
             return true;
         }
 
-        String sql = "INSERT INTO usuarios (ruc, razon_social, email, password_hash, buen_contribuyente, perfil, ruc_validado, fuente_ruc, fecha_validacion_ruc, estado_ruc, condicion_ruc, ruc_confianza) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO usuarios (ruc, razon_social, email, password_hash, buen_contribuyente, perfil, ruc_validado, fuente_ruc, fecha_validacion_ruc, estado_ruc, condicion_ruc, ruc_confianza, nivel_experiencia, preferencias) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection con = ConexionDB.obtenerConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
             setUsuarioBase(ps, usuario);
@@ -38,6 +38,8 @@ public class UsuarioRepositorio implements IUsuarioRepositorio {
             ps.setString(10, usuario.getEstadoRuc());
             ps.setString(11, usuario.getCondicionRuc());
             ps.setBigDecimal(12, BigDecimal.valueOf(usuario.getRucConfianza()));
+            ps.setString(13, usuario.getNivelExperiencia());
+            ps.setString(14, usuario.getPreferencias());
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             LoggerUtil.warn("Columnas RUC v3.1 no disponibles al crear usuario; usando insert legacy: " + e.getMessage());
@@ -93,7 +95,7 @@ public class UsuarioRepositorio implements IUsuarioRepositorio {
             }
         }
 
-        String sql = "SELECT * FROM usuarios WHERE ruc = ?";
+        String sql = "SELECT id, ruc, razon_social, email, password_hash, buen_contribuyente, perfil, fecha_registro, ultimo_acceso, ruc_validado, fuente_ruc, fecha_validacion_ruc, estado_ruc, condicion_ruc, ruc_confianza, nivel_experiencia, preferencias FROM usuarios WHERE ruc = ?";
         try (Connection con = ConexionDB.obtenerConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, ruc);
@@ -116,7 +118,7 @@ public class UsuarioRepositorio implements IUsuarioRepositorio {
             }
         }
 
-        String sql = "SELECT * FROM usuarios WHERE id = ?";
+        String sql = "SELECT id, ruc, razon_social, email, password_hash, buen_contribuyente, perfil, fecha_registro, ultimo_acceso, ruc_validado, fuente_ruc, fecha_validacion_ruc, estado_ruc, condicion_ruc, ruc_confianza, nivel_experiencia, preferencias FROM usuarios WHERE id = ?";
         try (Connection con = ConexionDB.obtenerConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, id);
@@ -139,7 +141,7 @@ public class UsuarioRepositorio implements IUsuarioRepositorio {
             }
         }
 
-        String sql = "SELECT * FROM usuarios WHERE email = ?";
+        String sql = "SELECT id, ruc, razon_social, email, password_hash, buen_contribuyente, perfil, fecha_registro, ultimo_acceso, ruc_validado, fuente_ruc, fecha_validacion_ruc, estado_ruc, condicion_ruc, ruc_confianza, nivel_experiencia, preferencias FROM usuarios WHERE email = ?";
         try (Connection con = ConexionDB.obtenerConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, email);
@@ -166,7 +168,7 @@ public class UsuarioRepositorio implements IUsuarioRepositorio {
         }
 
         List<Usuario> lista = new ArrayList<>();
-        String sql = "SELECT * FROM usuarios ORDER BY fecha_registro DESC LIMIT 100";
+        String sql = "SELECT id, ruc, razon_social, email, password_hash, buen_contribuyente, perfil, fecha_registro, ultimo_acceso, ruc_validado, fuente_ruc, fecha_validacion_ruc, estado_ruc, condicion_ruc, ruc_confianza, nivel_experiencia, preferencias FROM usuarios ORDER BY fecha_registro DESC LIMIT 100";
         try (Connection con = ConexionDB.obtenerConexion();
              PreparedStatement ps = con.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
@@ -205,6 +207,36 @@ public class UsuarioRepositorio implements IUsuarioRepositorio {
         }
     }
 
+    public boolean actualizarExperienciaYPreferencias(int id, String nivel, String preferencias) {
+        UsuarioJpaRepositorio repo = getJpaRepo();
+        if (repo != null) {
+            try {
+                Optional<UsuarioEntity> maybe = repo.findById(id);
+                if (maybe.isPresent()) {
+                    UsuarioEntity entity = maybe.get();
+                    entity.setNivelExperiencia(nivel);
+                    entity.setPreferencias(preferencias);
+                    repo.save(entity);
+                    return true;
+                }
+            } catch (Exception e) {
+                LoggerUtil.warn("Fallo actualizarExperienciaYPreferencias con JPA, fallback JDBC: " + e.getMessage());
+            }
+        }
+
+        String sql = "UPDATE usuarios SET nivel_experiencia = ?, preferencias = ? WHERE id = ?";
+        try (Connection con = ConexionDB.obtenerConexion();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, nivel);
+            ps.setString(2, preferencias);
+            ps.setInt(3, id);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            LoggerUtil.error("Error al actualizar experiencia y preferencias", e);
+            return false;
+        }
+    }
+
     private Usuario mapearUsuario(ResultSet rs) throws SQLException {
         Usuario u = new Usuario();
         u.setId(rs.getInt("id"));
@@ -222,6 +254,8 @@ public class UsuarioRepositorio implements IUsuarioRepositorio {
         if (hasColumn(rs, "estado_ruc")) u.setEstadoRuc(rs.getString("estado_ruc"));
         if (hasColumn(rs, "condicion_ruc")) u.setCondicionRuc(rs.getString("condicion_ruc"));
         if (hasColumn(rs, "ruc_confianza")) u.setRucConfianza(rs.getDouble("ruc_confianza"));
+        if (hasColumn(rs, "nivel_experiencia")) u.setNivelExperiencia(rs.getString("nivel_experiencia"));
+        if (hasColumn(rs, "preferencias")) u.setPreferencias(rs.getString("preferencias"));
         return u;
     }
 
@@ -256,6 +290,8 @@ public class UsuarioRepositorio implements IUsuarioRepositorio {
         entity.setEstadoRuc(model.getEstadoRuc());
         entity.setCondicionRuc(model.getCondicionRuc());
         entity.setRucConfianza(BigDecimal.valueOf(model.getRucConfianza()));
+        entity.setNivelExperiencia(model.getNivelExperiencia());
+        entity.setPreferencias(model.getPreferencias());
         if (model.getPasswordHash() != null) {
             entity.setPasswordHash(model.getPasswordHash());
         }
@@ -279,6 +315,8 @@ public class UsuarioRepositorio implements IUsuarioRepositorio {
         u.setEstadoRuc(entity.getEstadoRuc());
         u.setCondicionRuc(entity.getCondicionRuc());
         if (entity.getRucConfianza() != null) u.setRucConfianza(entity.getRucConfianza().doubleValue());
+        u.setNivelExperiencia(entity.getNivelExperiencia());
+        u.setPreferencias(entity.getPreferencias());
         return u;
     }
 }

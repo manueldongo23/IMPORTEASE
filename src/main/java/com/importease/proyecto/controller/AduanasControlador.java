@@ -65,7 +65,7 @@ public class AduanasControlador extends HttpServlet {
             write(resp, RespuestaEnvoltorio.error("FORBIDDEN", "No autorizado para esta operacion", AduanasServicio.SOURCE, false));
         } catch (IllegalArgumentException e) {
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            write(resp, RespuestaEnvoltorio.error("BAD_REQUEST", e.getMessage(), AduanasServicio.SOURCE, false));
+            write(resp, RespuestaEnvoltorio.error("BAD_REQUEST", "Solicitud aduanera invalida", AduanasServicio.SOURCE, false));
         } catch (Exception e) {
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             write(resp, RespuestaEnvoltorio.error("ADUANAS_ERROR", "No se pudo procesar la solicitud aduanera", AduanasServicio.SOURCE, false));
@@ -119,7 +119,7 @@ public class AduanasControlador extends HttpServlet {
             write(resp, RespuestaEnvoltorio.error("FORBIDDEN", "No autorizado para esta operacion", AduanasServicio.SOURCE, false));
         } catch (IllegalArgumentException e) {
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            write(resp, RespuestaEnvoltorio.error("BAD_REQUEST", e.getMessage(), AduanasServicio.SOURCE, false));
+            write(resp, RespuestaEnvoltorio.error("BAD_REQUEST", "Solicitud aduanera invalida", AduanasServicio.SOURCE, false));
         } catch (Exception e) {
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             write(resp, RespuestaEnvoltorio.error("ADUANAS_ERROR", "No se pudo procesar la solicitud aduanera", AduanasServicio.SOURCE, false));

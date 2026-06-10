@@ -1,4 +1,12 @@
-﻿-- ====================================================================
+﻿-- ============================================================
+-- IMPORTEASE ADUANERO - BASE DE DATOS UNIFICADA COMPLETA
+-- ============================================================
+-- Generado el 2026-06-10 09:55:11
+-- Combina: importease_full_schema + seed_normativa + upgrades v3.7 a v5.1
+-- ============================================================
+
+-- >>> INICIO: sql\importease_full_schema.sql <<<
+-- ====================================================================
 -- IMPORTEASE_DB - ESQUEMA COMPLETO CONSOLIDADO
 -- ====================================================================
 -- Archivo generado a partir de la consolidacion de 11+ scripts SQL.
@@ -11603,3 +11611,335 @@ SELECT 'SEED COMPLETO - FIN DEL SCRIPT' AS '';
 SELECT '======================================================' AS '';
 
 SET FOREIGN_KEY_CHECKS = @OLD_FOREIGN_KEY_CHECKS;
+
+-- >>> FIN: sql\importease_full_schema.sql <<<
+
+-- >>> INICIO: sql\seed_normativa.sql <<<
+-- =====================================================================
+-- IMPORTEASE ADUANERO - SEED DE NORMATIVA ADUANERA PERUANA
+-- =====================================================================
+-- Version: 1.0
+-- Fuente: Ley General de Aduanas (Decreto Supremo), DESPA-PG, VUCE
+-- =====================================================================
+
+USE importease_db;
+SET NAMES utf8mb4;
+SET @OLD_FOREIGN_KEY_CHECKS = @@FOREIGN_KEY_CHECKS;
+SET FOREIGN_KEY_CHECKS = 0;
+
+-- =====================================================================
+-- TABLA 1: reglas_normativas
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS reglas_normativas (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  codigo VARCHAR(80) NOT NULL UNIQUE,
+  nombre VARCHAR(255) NOT NULL,
+  tipo VARCHAR(20) NOT NULL COMMENT 'BLOCKING | WARNING | INFO',
+  base_legal VARCHAR(255),
+  fuente VARCHAR(255),
+  version VARCHAR(50),
+  vigente BOOLEAN DEFAULT TRUE,
+  descripcion TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_rn_tipo (tipo),
+  INDEX idx_rn_vigente (vigente)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT IGNORE INTO reglas_normativas (codigo, nombre, tipo, base_legal, fuente, version, vigente, descripcion) VALUES
+('IMP_CONSUMO_DESTINACION', 'Plazo destinacion aduanera importacion consumo', 'BLOCKING', 'LGA art 155', 'DESPA-PG.01', '1.0', TRUE, 'La mercancia importada debe destinarse dentro de 15 dias calendario desde el termino de la descarga.'),
+('IMP_CONSUMO_ABANDONO', 'Abandono legal por vencimiento de plazo', 'BLOCKING', 'LGA art 158', 'DESPA-PG.01', '1.0', TRUE, 'Vencido el plazo de destinacion sin regularizar, la mercancia entra en abandono legal y puede ser rematada.'),
+('REIMPORTACION_PLAZO', 'Plazo maximo para reimportacion en el mismo estado', 'BLOCKING', 'LGA art 108', 'DESPA-PG.26', '1.0', TRUE, 'La reimportacion en el mismo estado debe realizarse dentro de 36 meses desde la exportacion precedente.'),
+('ADMISION_TEMPORAL_PLAZO', 'Plazo maximo admision temporal para reexportacion', 'BLOCKING', 'LGA art 112', 'DESPA-PG.04', '1.0', TRUE, 'La mercancia bajo admision temporal puede permanecer hasta 540 dias prorrogables.'),
+('ADMISION_TEMPORAL_GARANTIA', 'Garantia obligatoria admision temporal', 'WARNING', 'LGA art 113', 'DESPA-PG.04', '1.0', TRUE, 'Se debe constituir garantia por tributos suspendidos ante la SAF.'),
+('TRANSITO_RUTA', 'Ruta autorizada para transito aduanero', 'BLOCKING', 'LGA art 161', 'DESPA-PG.08', '1.0', TRUE, 'El transito debe realizarse por la ruta autorizada por SUNAT sin desviaciones.'),
+('TRANSITO_PLAZO', 'Plazo general para transito aduanero', 'BLOCKING', 'LGA art 161', 'DESPA-PG.08', '1.0', TRUE, 'El transito aduanero debe completarse en un plazo maximo de 30 dias calendario desde el levante.'),
+('TRANSITO_PRECINTOS', 'Precintos obligatorios en transito aduanero', 'BLOCKING', 'LGA art 162', 'DESPA-PG.08', '1.0', TRUE, 'Los precintos aduaneros son obligatorios para garantizar la integridad de la carga en transito.'),
+('TRANSBORDO_MODALIDAD', 'Modalidades de transbordo autorizadas', 'WARNING', 'LGA art 165', 'DESPA-PG.11', '1.0', TRUE, 'El transbordo puede ser directo (buque a buque) o indirecto (con deposito temporal).'),
+('TRANSBORDO_PLAZO', 'Plazo para reembarque en transbordo', 'BLOCKING', 'LGA art 165', 'DESPA-PG.11', '1.0', TRUE, 'El reembarque debe realizarse dentro de 30 dias calendario desde la descarga.'),
+('MERCANCIA_RESTRINGIDA', 'Permiso sectorial obligatorio para mercancias restringidas', 'BLOCKING', 'LGA art 63, DS 007-98-SA', 'VUCE', '1.0', TRUE, 'Las mercancias restringidas requieren permiso sectorial previo (VUCE) antes del despacho.'),
+('PREDAM_MANIFIESTO', 'PRE-DAM bloqueada sin manifiesto de carga', 'BLOCKING', 'LGA art 40, DESPA-PG.01', 'DESPA-PG.01', '1.0', TRUE, 'No se puede generar PRE-DAM sin manifiesto de carga registrado para la operacion.'),
+('PREDAM_FOB', 'PRE-DAM bloqueada sin valor FOB valido', 'BLOCKING', 'LGA art 30, DESPA-PG.01', 'DESPA-PG.01', '1.0', TRUE, 'El valor FOB es obligatorio y debe ser mayor o igual a 1 USD para generar PRE-DAM.'),
+('PREDAM_HS', 'PRE-DAM bloqueada sin codigo HS', 'BLOCKING', 'LGA art 30, DESPA-PG.01 anexo 8', 'DESPA-PG.01', '1.0', TRUE, 'El codigo de subpartida nacional (HS) es obligatorio para la clasificacion arancelaria.'),
+('PREDAM_TRANSPORTE', 'PRE-DAM bloqueada sin documento de transporte', 'BLOCKING', 'LGA art 40', 'DESPA-PG.01', '1.0', TRUE, 'Debe existir un documento de transporte (BL/AWB) vinculado al manifiesto.'),
+('DTA_TIPO_CAMBIO', 'DTA requiere tipo de cambio obligatorio', 'BLOCKING', 'LGA art 30, Ley 27681', 'DESPA-PG.01', '1.0', TRUE, 'El tipo de cambio es obligatorio para la conversion de valores en la DTA.');
+
+-- =====================================================================
+-- TABLA 2: restricciones_hs
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS restricciones_hs (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  rango_hs VARCHAR(20) NOT NULL,
+  descripcion VARCHAR(255) NOT NULL,
+  entidad VARCHAR(100) NOT NULL,
+  documento_requerido VARCHAR(255),
+  base_legal TEXT,
+  vigencia VARCHAR(50) DEFAULT 'Vigente',
+  fuente_url VARCHAR(500),
+  version VARCHAR(50) DEFAULT '1.0',
+  vigente BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_rh_rango (rango_hs),
+  INDEX idx_rh_entidad (entidad),
+  INDEX idx_rh_vigente (vigente)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT IGNORE INTO restricciones_hs (rango_hs, descripcion, entidad, documento_requerido, base_legal, vigencia, fuente_url) VALUES
+('01-02', 'Animales vivos y productos del reino animal', 'SENASA', 'Certificado Zoosanitario de Importacion', 'DS 016-2009-AG', 'Vigente', 'https://www.senasa.gob.pe'),
+('03', 'Pescados y crustaceos', 'SANIPES / SENASA', 'Certificado Sanitario / Certificado Zoosanitario', 'DS 011-2017-PRODUCE, DS 016-2009-AG', 'Vigente', 'https://www.sanipes.gob.pe'),
+('07-08', 'Legumbres, hortalizas y frutas', 'SENASA', 'Certificado Fitosanitario de Importacion', 'DS 016-2009-AG', 'Vigente', 'https://www.senasa.gob.pe'),
+('28-38', 'Productos quimicos y farmaceuticos', 'DIGEMID / MINAM', 'Registro Sanitario / Certificado de Libre Venta / MSDS', 'DS 007-98-SA, Ley 28256', 'Vigente', 'https://www.digemid.minsa.gob.pe'),
+('84-85', 'Maquinas, aparatos y material electrico', 'MTC', 'Homologacion / Certificado de Conformidad / Registro de Equipos', 'DS 008-2017-MTC', 'Vigente', 'https://www.mtc.gob.pe'),
+('87', 'Vehiculos automoviles', 'MTC', 'Certificado de Homologacion Vehicular / Registro Unico de Vehiculos', 'DS 058-2003-MTC', 'Vigente', 'https://www.mtc.gob.pe'),
+('93', 'Armas y municiones', 'SUCAMEC', 'Licencia de Importacion / Certificado de Control', 'Ley 30299, DS 010-2015-IN', 'Vigente', 'https://www.sucamec.gob.pe'),
+('95', 'Juguetes y articulos de recreo', 'DIGESA', 'Registro Sanitario / Certificado de Seguridad', 'DS 010-2015-SA, Ley 28376', 'Vigente', 'https://www.digesa.minsa.gob.pe'),
+('CITES', 'Especies CITES (flora y fauna protegida)', 'SERFOR / ATFFS', 'Permiso CITES de exportacion / Certificado de origen legal', 'Ley 29763, DS 019-2015-MINAGRI', 'Vigente', 'https://www.serfor.gob.pe'),
+('97', 'Obras de arte, antiguedades y colecciones', 'Ministerio de Cultura', 'Certificado de Inexportabilidad / Registro de Obras', 'Ley 28296, DS 017-2003-ED', 'Vigente', 'https://www.cultura.gob.pe');
+
+-- =====================================================================
+-- TABLA 3: reglas_plazo
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS reglas_plazo (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  codigo VARCHAR(80) NOT NULL UNIQUE,
+  label VARCHAR(255) NOT NULL,
+  evento_base VARCHAR(80),
+  plazo_dias INT NOT NULL,
+  regimen VARCHAR(20),
+  modalidad VARCHAR(40),
+  via VARCHAR(30),
+  norma_fuente VARCHAR(255),
+  version VARCHAR(50),
+  vigente BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_rp_regimen (regimen),
+  INDEX idx_rp_vigente (vigente)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT IGNORE INTO reglas_plazo (codigo, label, evento_base, plazo_dias, regimen, modalidad, via, norma_fuente, version) VALUES
+('DIFERIDO_10', 'Importacion diferida - plazo destinacion', 'TERMINO_DESCARGA', 15, '10', 'DIFERIDO', 'MARITIMA', 'DESPA-PG.01 / LGA art 150', '1.0'),
+('ANTICIPADO_10', 'Importacion anticipada - plazo antes de llegada', 'FECHA_LLEGADA', 30, '10', 'ANTICIPADO', 'AEREA', 'DESPA-PG.01 / LGA art 150', '1.0'),
+('REIMPORTACION_23', 'Reimportacion - plazo maximo desde exportacion', 'FECHA_EMBARQUE', 1095, '23', NULL, NULL, 'DESPA-PG.26 / LGA art 108', '1.0'),
+('ADMISION_TEMPORAL_21', 'Admision temporal - plazo maximo', 'FECHA_LEVANTE', 540, '21', NULL, NULL, 'DESPA-PG.04 / LGA art 112', '1.0'),
+('TRANSITO_50', 'Transito aduanero - plazo general', 'FECHA_LEVANTE', 30, '50', NULL, NULL, 'DESPA-PG.08 / LGA art 161', '1.0'),
+('TRANSBORDO_60', 'Transbordo - plazo para reembarque', 'FECHA_NUMERACION', 30, '60', NULL, NULL, 'DESPA-PG.11 / LGA art 165', '1.0'),
+('ABANDONO_DIFERIDO', 'Abandono legal - plazo desde termino descarga', 'TERMINO_DESCARGA', 30, '10', 'DIFERIDO', 'MARITIMA', 'DESPA-PG.01 / LGA art 155', '1.0'),
+('ABANDONO_ANTICIPADO', 'Abandono legal - plazo desde llegada', 'FECHA_LLEGADA', 15, '10', 'ANTICIPADO', 'AEREA', 'DESPA-PG.01 / LGA art 155', '1.0');
+
+SET FOREIGN_KEY_CHECKS = @OLD_FOREIGN_KEY_CHECKS;
+
+SELECT 'Seed normativa completado exitosamente.' AS resultado;
+
+-- >>> FIN: sql\seed_normativa.sql <<<
+
+-- >>> INICIO: sql\upgrade_v3.7_borrador_guiado.sql <<<
+-- ================================================================
+-- UPGRADE v3.7 - PERSISTENCIA DE BORRADOR DE IMPORTACION GUIADA
+-- ================================================================
+
+USE importease_db;
+
+-- 1. Crear la tabla de borradores de importaciÃ³n guiada
+CREATE TABLE IF NOT EXISTS importacion_borrador (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    usuario_id INT NOT NULL,
+    paso_actual INT NOT NULL DEFAULT 1,
+    json_borrador MEDIUMTEXT NOT NULL,
+    fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    estado VARCHAR(50) DEFAULT 'BORRADOR',
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE,
+    UNIQUE KEY uk_usuario_borrador (usuario_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- >>> FIN: sql\upgrade_v3.7_borrador_guiado.sql <<<
+
+-- >>> INICIO: sql\upgrade_v4.0_flujo_guiado.sql <<<
+-- ================================================================
+-- UPGRADE v4.0 - FLUJO GUIADO + MATRIZ RESTRICCIONES + NORMATIVA
+-- ================================================================
+
+-- 1. Tabla de persistencia para pasos del wizard guiado
+CREATE TABLE IF NOT EXISTS expediente_guided_steps (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    expediente_id INT NOT NULL,
+    paso_numero INT NOT NULL CHECK (paso_numero BETWEEN 1 AND 8),
+    estado VARCHAR(20) NOT NULL DEFAULT 'PENDIENTE',
+    bloqueado BOOLEAN DEFAULT FALSE,
+    motivo_bloqueo TEXT,
+    fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_expediente_paso (expediente_id, paso_numero),
+    INDEX idx_expediente (expediente_id),
+    FOREIGN KEY (expediente_id) REFERENCES operaciones(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 2. Tabla formal de restricciones por HS Code
+CREATE TABLE IF NOT EXISTS restricciones_formal (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    rango_hs VARCHAR(20) NOT NULL,
+    descripcion VARCHAR(255) NOT NULL,
+    entidad VARCHAR(100) NOT NULL,
+    permiso_requerido VARCHAR(255) NOT NULL,
+    vigencia VARCHAR(20) DEFAULT 'Vigente',
+    fuente_base_legal VARCHAR(255) NOT NULL,
+    fuente_url VARCHAR(255),
+    version VARCHAR(20) DEFAULT '1.0',
+    activo BOOLEAN DEFAULT TRUE,
+    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_rango_hs (rango_hs),
+    INDEX idx_entidad (entidad)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT IGNORE INTO restricciones_formal (rango_hs, descripcion, entidad, permiso_requerido, vigencia, fuente_base_legal, fuente_url) VALUES
+('01-02', 'Animales vivos y productos del reino animal', 'SENASA', 'Certificado Zoosanitario de Importacion', 'Vigente', 'DS 016-2009-AG', 'https://www.senasa.gob.pe'),
+('03', 'Pescados y crustaceos', 'SANIPES / SENASA', 'Certificado Sanitario / Certificado Zoosanitario', 'Vigente', 'DS 011-2017-PRODUCE, DS 016-2009-AG', 'https://www.sanipes.gob.pe'),
+('07-08', 'Legumbres, hortalizas y frutas', 'SENASA', 'Certificado Fitosanitario de Importacion', 'Vigente', 'DS 016-2009-AG', 'https://www.senasa.gob.pe'),
+('28-38', 'Productos quimicos y farmaceuticos', 'DIGEMID / MINAM', 'Registro Sanitario / Certificado de Libre Venta / MSDS', 'Vigente', 'DS 007-98-SA, Ley 28256', 'https://www.digemid.minsa.gob.pe'),
+('84-85', 'Maquinas, aparatos y material electrico', 'MTC', 'Homologacion / Certificado de Conformidad', 'Vigente', 'DS 008-2017-MTC', 'https://www.mtc.gob.pe'),
+('87', 'Vehiculos automoviles', 'MTC', 'Certificado de Homologacion Vehicular', 'Vigente', 'DS 058-2003-MTC', 'https://www.mtc.gob.pe'),
+('93', 'Armas y municiones', 'SUCAMEC', 'Licencia de Importacion / Certificado de Control', 'Vigente', 'Ley 30299, DS 010-2015-IN', 'https://www.sucamec.gob.pe'),
+('95', 'Juguetes y articulos de recreo', 'DIGESA', 'Registro Sanitario / Certificado de Seguridad', 'Vigente', 'DS 010-2015-SA, Ley 28376', 'https://www.digesa.minsa.gob.pe'),
+('CITES', 'Especies CITES (flora y fauna protegida)', 'SERFOR / ATFFS', 'Permiso CITES de exportacion / Certificado de origen legal', 'Vigente', 'Ley 29763, DS 019-2015-MINAGRI', 'https://www.serfor.gob.pe'),
+('97', 'Obras de arte, antiguedades y colecciones', 'Ministerio de Cultura', 'Certificado de Inexportabilidad', 'Vigente', 'Ley 28296, DS 017-2003-ED', 'https://www.cultura.gob.pe'),
+('4407', 'Madera aserrada o desbastada', 'SERFOR', 'Permiso de aprovechamiento forestal / Certificado CITES', 'Vigente', 'Ley 29763', 'https://www.serfor.gob.pe'),
+('9018', 'Instrumentos y aparatos de medicina', 'DIGEMID / MTC', 'Registro Sanitario / Homologacion de Telecomunicaciones', 'Vigente', 'DS 007-98-SA, DS 008-2017-MTC', 'https://www.digemid.minsa.gob.pe'),
+('2106', 'Preparaciones alimenticias no expresadas', 'DIGESA', 'Registro Sanitario de Alimentos', 'Vigente', 'DS 010-2015-SA', 'https://www.digesa.minsa.gob.pe'),
+('3303-3304', 'Perfumes y cosmeticos', 'DIGESA', 'Registro Sanitario / Notificacion Obligatoria', 'Vigente', 'DS 010-2015-SA', 'https://www.digesa.minsa.gob.pe'),
+('1209', 'Semillas y frutos para siembra', 'SENASA', 'Certificado Fitosanitario / Registro de Semillas', 'Vigente', 'DS 016-2009-AG', 'https://www.senasa.gob.pe'),
+('8517', 'Aparatos de telecomunicacion', 'MTC', 'Homologacion de Equipos / Certificado de Conformidad', 'Vigente', 'DS 008-2017-MTC', 'https://www.mtc.gob.pe');
+
+-- 3. Actualizar fechas en manifiestos_carga para evitar NULL en plazos
+UPDATE manifiestos_carga SET fecha_llegada = CURRENT_TIMESTAMP WHERE fecha_llegada IS NULL;
+UPDATE manifiestos_carga SET fecha_termino_descarga = DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 2 DAY) WHERE fecha_termino_descarga IS NULL;
+
+-- 4. Asegurar fuente estandarizada en tablas existentes
+UPDATE dam_cabecera SET source_type = 'SIMULATED' WHERE source_type IN ('SIMULADO', 'SIMULACION');
+UPDATE deuda_tributaria_aduanera SET source_type = 'REFERENTIAL' WHERE source_type IN ('ESTIMADO', 'ESTIMACION');
+
+-- >>> FIN: sql\upgrade_v4.0_flujo_guiado.sql <<<
+
+-- >>> INICIO: sql\upgrade_v4.1_normativa.sql <<<
+-- upgrade_v4.1_normativa.sql
+-- Mejoras a restricciones_formal y nueva tabla fuente_metadata
+
+ALTER TABLE restricciones_formal
+  ADD COLUMN hs_regex VARCHAR(80) NULL AFTER hs_categoria,
+  ADD COLUMN source_type VARCHAR(30) NOT NULL DEFAULT 'OFFICIAL_PROCEDURE' AFTER hs_regex,
+  ADD COLUMN confidence DECIMAL(5,2) NOT NULL DEFAULT 0.95 AFTER source_type,
+  ADD COLUMN last_checked_at TIMESTAMP NULL AFTER vigente;
+
+CREATE TABLE IF NOT EXISTS fuente_metadata (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  source_name VARCHAR(80) NOT NULL,
+  source_url VARCHAR(500) NOT NULL,
+  source_type VARCHAR(30) NOT NULL,
+  fetched_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  content_hash CHAR(64) NOT NULL,
+  version_label VARCHAR(40) NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Agregar columnas adicionales a reglas_plazo para mejor soporte desde codigo
+ALTER TABLE reglas_plazo
+  ADD COLUMN IF NOT EXISTS plazo_meses INT NULL AFTER plazo_dias,
+  ADD COLUMN IF NOT EXISTS plazo_dias_alterno INT NULL AFTER plazo_meses,
+  ADD COLUMN IF NOT EXISTS fuente_referencia VARCHAR(255) NULL AFTER norma_fuente,
+  ADD COLUMN IF NOT EXISTS mensaje TEXT NULL AFTER fuente_referencia;
+
+-- >>> FIN: sql\upgrade_v4.1_normativa.sql <<<
+
+-- >>> INICIO: sql\upgrade_v5.0_fuentes_reales.sql <<<
+-- upgrade_v5.0_fuentes_reales.sql
+-- Migracion para fuentes de datos reales: SUNAT bulk, VUCE PAM, Veritrade, DR/SUCE
+
+-- 1. Nuevas columnas en hs_codes para datos enriquecidos de SUNAT
+ALTER TABLE hs_codes
+  ADD COLUMN IF NOT EXISTS ipm DECIMAL(5,2) DEFAULT 0.00 AFTER igv,
+  ADD COLUMN IF NOT EXISTS antidumping BOOLEAN DEFAULT FALSE AFTER entidad_vuce,
+  ADD COLUMN IF NOT EXISTS restricciones TEXT NULL AFTER antidumping,
+  ADD COLUMN IF NOT EXISTS prohibiciones TEXT NULL AFTER restricciones;
+
+-- 2. Tabla de procedimientos VUCE (Lista de Procedimientos Incorporados)
+CREATE TABLE IF NOT EXISTS vuce_procedimientos (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  entidad VARCHAR(50) NOT NULL,
+  codigo_tupa VARCHAR(50) NULL,
+  detalle VARCHAR(500) NOT NULL,
+  plazo VARCHAR(100) NULL,
+  costo VARCHAR(100) NULL,
+  base_legal VARCHAR(255) NULL,
+  ultima_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uk_vuce_procedimiento (entidad, codigo_tupa)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 3. Tabla de verificaciones documentales VUCE (DR/SUCE)
+CREATE TABLE IF NOT EXISTS vuce_verificaciones_documentales (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  tipo_verificacion VARCHAR(10) NOT NULL COMMENT 'DR o SUCE',
+  numero_documento VARCHAR(100) NOT NULL,
+  ruc VARCHAR(11) NULL,
+  verificado BOOLEAN DEFAULT FALSE,
+  detalle TEXT NULL,
+  codigo_qr TEXT NULL,
+  usuario_id INT NULL,
+  operacion_id INT NULL,
+  fecha_verificacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_vuce_verif_tipo_num (tipo_verificacion, numero_documento),
+  FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE SET NULL,
+  FOREIGN KEY (operacion_id) REFERENCES operaciones(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 4. Tabla de importaciones historicas (Veritrade / SUNAT operatividad)
+CREATE TABLE IF NOT EXISTS historico_importaciones_partida (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  hs_code VARCHAR(10) NOT NULL,
+  descripcion VARCHAR(500) NULL,
+  importador VARCHAR(255) NULL,
+  exportador VARCHAR(255) NULL,
+  pais_origen VARCHAR(100) NULL,
+  valor_fob DECIMAL(15,2) DEFAULT 0.00,
+  valor_cif DECIMAL(15,2) DEFAULT 0.00,
+  peso DECIMAL(12,3) DEFAULT 0.00,
+  via_transporte VARCHAR(50) NULL,
+  fuente VARCHAR(50) NOT NULL DEFAULT 'VERITRADE',
+  usuario_id INT NULL,
+  fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_hist_hs (hs_code),
+  INDEX idx_hist_fuente (fuente),
+  FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 5. Agregar columna source_type a vuce_restricciones para trazabilidad
+ALTER TABLE vuce_restricciones
+  ADD COLUMN IF NOT EXISTS source_type VARCHAR(30) DEFAULT 'BD_LOCAL' AFTER enlace_tupa;
+
+-- >>> FIN: sql\upgrade_v5.0_fuentes_reales.sql <<<
+
+-- >>> INICIO: sql\upgrade_v5.1_password_reset.sql <<<
+-- ====================================================================
+-- v5.1 - Recuperacion de contrasena segura
+-- ====================================================================
+-- Guarda solo hash SHA-256 del token; nunca guardar token plano.
+-- El token expira y se invalida tras un unico uso.
+-- ====================================================================
+
+SET NAMES utf8mb4;
+USE importease_db;
+
+CREATE TABLE IF NOT EXISTS password_reset_tokens (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    usuario_id INT NOT NULL,
+    token_hash CHAR(64) NOT NULL,
+    expires_at DATETIME NOT NULL,
+    used_at DATETIME NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_ip VARCHAR(45) NULL,
+    user_agent VARCHAR(255) NULL,
+    UNIQUE KEY uk_password_reset_token_hash (token_hash),
+    INDEX idx_password_reset_usuario_estado (usuario_id, used_at, expires_at),
+    INDEX idx_password_reset_created_ip (created_ip, created_at),
+    CONSTRAINT fk_password_reset_usuario
+        FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
+        ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- >>> FIN: sql\upgrade_v5.1_password_reset.sql <<<
+

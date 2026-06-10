@@ -1481,6 +1481,22 @@ body.auth-page {
     }
 }
 
+/* Skip link visible on focus */
+.skip-link:focus {
+    left: 0 !important;
+    clip: auto !important;
+    height: auto !important;
+    width: auto !important;
+    white-space: normal !important;
+}
+
+/* Auth-specific focus indicator */
+.auth-page *:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
 @media (max-width: 900px) {
     .auth-panel-left {
         display: none;

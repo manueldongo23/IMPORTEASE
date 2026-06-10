@@ -18,7 +18,7 @@ public class Importacion {
     
     private java.math.BigDecimal montoAdValorem = java.math.BigDecimal.ZERO;
     private java.math.BigDecimal montoIsc = java.math.BigDecimal.ZERO;
-    private java.math.BigDecimal montoIgb = java.math.BigDecimal.ZERO;
+    private java.math.BigDecimal montoIgv = java.math.BigDecimal.ZERO;
     private java.math.BigDecimal montoIpm = java.math.BigDecimal.ZERO;
     private java.math.BigDecimal montoPercepcion = java.math.BigDecimal.ZERO;
     private java.math.BigDecimal totalImpuestos = java.math.BigDecimal.ZERO;
@@ -91,10 +91,16 @@ public class Importacion {
     public java.math.BigDecimal getMontoIscBD() { return montoIsc; }
     public void setMontoIscBD(java.math.BigDecimal montoIsc) { this.montoIsc = montoIsc; }
 
-    public double getMontoIgb() { return montoIgb != null ? montoIgb.doubleValue() : 0.0; }
-    public void setMontoIgb(double montoIgb) { this.montoIgb = java.math.BigDecimal.valueOf(montoIgb); }
-    public java.math.BigDecimal getMontoIgbBD() { return montoIgb; }
-    public void setMontoIgbBD(java.math.BigDecimal montoIgb) { this.montoIgb = montoIgb; }
+    public double getMontoIgv() { return montoIgv != null ? montoIgv.doubleValue() : 0.0; }
+    public void setMontoIgv(double montoIgv) { this.montoIgv = java.math.BigDecimal.valueOf(montoIgv); }
+    public java.math.BigDecimal getMontoIgvBD() { return montoIgv; }
+    public void setMontoIgvBD(java.math.BigDecimal montoIgv) { this.montoIgv = montoIgv; }
+
+    // Backward-compatible aliases for legacy callers
+    public double getMontoIgb() { return getMontoIgv(); }
+    public void setMontoIgb(double v) { setMontoIgv(v); }
+    public java.math.BigDecimal getMontoIgbBD() { return getMontoIgvBD(); }
+    public void setMontoIgbBD(java.math.BigDecimal v) { setMontoIgvBD(v); }
 
     public double getMontoIpm() { return montoIpm != null ? montoIpm.doubleValue() : 0.0; }
     public void setMontoIpm(double montoIpm) { this.montoIpm = java.math.BigDecimal.valueOf(montoIpm); }

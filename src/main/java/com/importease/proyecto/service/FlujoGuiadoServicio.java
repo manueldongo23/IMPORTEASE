@@ -5,6 +5,9 @@ import com.importease.proyecto.repository.ImportacionRepositorio;
 import com.importease.proyecto.repository.guidedflow.FlujoGuiadoPasoRepositorio;
 import com.importease.proyecto.service.guidedflow.FlujoGuiadoReglaServicio;
 import com.importease.proyecto.service.guidedflow.FlujoGuiadoPasoCatalogo;
+import com.importease.proyecto.service.ConexionDB;
+import com.importease.proyecto.service.AuditoriaServicio;
+import com.importease.proyecto.service.LoggerUtil;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -73,62 +76,69 @@ public class FlujoGuiadoServicio {
     }
 
     private int countCompletedSteps(Connection con, int expedienteId) {
-        return stepRepository.countCompletedSteps(con, expedienteId);
+        int count = 0;
+        for (int i = 1; i <= TOTAL_PASOS; i++) {
+            if ("COMPLETO".equals(getStepEstado(con, expedienteId, i))) {
+                count++;
+            }
+        }
+        return count;
     }
 
+    /**
+     * Obtiene el paso actual del flujo guiado, calculando estado, motivo de bloqueo
+     * y porcentaje de avance.
+     */
     public PasoGuiadoDTO obtenerPasoActual(int expedienteId) {
         try (Connection con = ConexionDB.obtenerConexion()) {
             initStepsIfNeeded(con, expedienteId);
-
-            int stepActual = 1;
+            int currentStep = 1;
             for (int i = 1; i <= TOTAL_PASOS; i++) {
                 String est = getStepEstado(con, expedienteId, i);
-                if (est == null || "PENDIENTE".equals(est)) {
-                    stepActual = i;
+                if (est == null || "PENDIENTE".equals(est) || "BLOQUEADO".equals(est) || "OBSERVADO".equals(est)) {
+                    currentStep = i;
                     break;
-                }
-                if ("BLOQUEADO".equals(est) || "OBSERVADO".equals(est)) {
-                    stepActual = i;
-                    break;
-                }
-                if ("COMPLETO".equals(est) && i == TOTAL_PASOS) {
-                    stepActual = TOTAL_PASOS;
                 }
             }
 
-            String estado = getStepEstado(con, expedienteId, stepActual);
-            if (estado == null) {
-                estado = "PENDIENTE";
+            if (currentStep > TOTAL_PASOS) {
+                return new PasoGuiadoDTO(TOTAL_PASOS, obtenerNombrePaso(TOTAL_PASOS),
+                        obtenerDescripcionPaso(TOTAL_PASOS, true), "COMPLETO", null, BigDecimal.valueOf(100));
             }
 
+            String validationError = ruleService.validateStep(con, currentStep, expedienteId);
+            String estado = "PENDIENTE";
             String motivoBloqueo = null;
-            if ("BLOQUEADO".equals(estado)) {
-                motivoBloqueo = getMotivoBloqueo(con, expedienteId, stepActual);
-                if (motivoBloqueo == null) {
-                    motivoBloqueo = "Paso bloqueado: revise las validaciones pendientes.";
-                }
-            }
-
             int completedCount = countCompletedSteps(con, expedienteId);
             BigDecimal pct = BigDecimal.valueOf(completedCount)
-                .multiply(BigDecimal.valueOf(100))
-                .divide(BigDecimal.valueOf(TOTAL_PASOS), 0, RoundingMode.HALF_UP);
+                    .multiply(BigDecimal.valueOf(100))
+                    .divide(BigDecimal.valueOf(TOTAL_PASOS), 0, RoundingMode.HALF_UP);
 
-            return new PasoGuiadoDTO(
-                stepActual,
-                obtenerNombrePaso(stepActual),
-                obtenerDescripcionPaso(stepActual, true),
-                estado,
-                motivoBloqueo,
-                pct
-            );
+            if ("BLOQUEADO".equals(getStepEstado(con, expedienteId, currentStep))) {
+                // re‑validar; if no error, unlock
+                if (validationError == null) {
+                    setStepEstado(con, expedienteId, currentStep, "PENDIENTE");
+                } else {
+                    motivoBloqueo = validationError;
+                    estado = "BLOQUEADO";
+                }
+            } else if (validationError != null) {
+                setStepEstado(con, expedienteId, currentStep, "OBSERVADO");
+                estado = "OBSERVADO";
+                motivoBloqueo = validationError;
+            }
+
+            return new PasoGuiadoDTO(currentStep, obtenerNombrePaso(currentStep),
+                    obtenerDescripcionPaso(currentStep, true), estado, motivoBloqueo, pct);
         } catch (SQLException e) {
             LoggerUtil.error("Error al obtener paso actual", e);
         }
-
-        return new PasoGuiadoDTO(1, obtenerNombrePaso(1), obtenerDescripcionPaso(1, true), "PENDIENTE", null, BigDecimal.ZERO);
+        return null;
     }
 
+    /**
+     * Avanza al siguiente paso del flujo guiado.
+     */
     public PasoGuiadoDTO avanzarPaso(int expedienteId, int usuarioId) {
         try (Connection con = ConexionDB.obtenerConexion()) {
             initStepsIfNeeded(con, expedienteId);
@@ -143,34 +153,23 @@ public class FlujoGuiadoServicio {
             }
 
             if (currentStep > TOTAL_PASOS) {
-                int completedCount = countCompletedSteps(con, expedienteId);
                 return new PasoGuiadoDTO(TOTAL_PASOS, obtenerNombrePaso(TOTAL_PASOS),
-                    obtenerDescripcionPaso(TOTAL_PASOS, true), "COMPLETO", null,
-                    BigDecimal.valueOf(100));
+                        obtenerDescripcionPaso(TOTAL_PASOS, true), "COMPLETO", null, BigDecimal.valueOf(100));
             }
 
             String validationError = ruleService.validateStep(con, currentStep, expedienteId);
 
             if (validationError != null) {
                 setStepEstado(con, expedienteId, currentStep, "OBSERVADO");
-
                 int completedCount = countCompletedSteps(con, expedienteId);
                 BigDecimal pct = BigDecimal.valueOf(completedCount)
-                    .multiply(BigDecimal.valueOf(100))
-                    .divide(BigDecimal.valueOf(TOTAL_PASOS), 0, RoundingMode.HALF_UP);
-
+                        .multiply(BigDecimal.valueOf(100))
+                        .divide(BigDecimal.valueOf(TOTAL_PASOS), 0, RoundingMode.HALF_UP);
                 AuditoriaServicio.registrar(usuarioId, "AVANZAR_PASO", "expedientes", expedienteId,
-                    "Paso " + currentStep + " (" + obtenerNombrePaso(currentStep) + ") OBSERVADO: " + validationError,
-                    null, null);
-
-                return new PasoGuiadoDTO(
-                    currentStep,
-                    obtenerNombrePaso(currentStep),
-                    obtenerDescripcionPaso(currentStep, true),
-                    "OBSERVADO",
-                    validationError,
-                    pct
-                );
+                        "Paso " + currentStep + " (" + obtenerNombrePaso(currentStep) + ") OBSERVADO: " + validationError,
+                        null, null);
+                return new PasoGuiadoDTO(currentStep, obtenerNombrePaso(currentStep),
+                        obtenerDescripcionPaso(currentStep, true), "OBSERVADO", validationError, pct);
             }
 
             setStepEstado(con, expedienteId, currentStep, "COMPLETO");
@@ -183,32 +182,27 @@ public class FlujoGuiadoServicio {
             }
 
             AuditoriaServicio.registrar(usuarioId, "AVANZAR_PASO", "expedientes", expedienteId,
-                "AvanzÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³ al paso " + (currentStep + 1) + " (" + obtenerNombrePaso(currentStep + 1) + ")",
-                null, null);
+                    "Avanzó al paso " + (currentStep + 1) + " (" + obtenerNombrePaso(currentStep + 1) + ")",
+                    null, null);
 
             int completedCount = countCompletedSteps(con, expedienteId);
             BigDecimal pct = BigDecimal.valueOf(completedCount)
-                .multiply(BigDecimal.valueOf(100))
-                .divide(BigDecimal.valueOf(TOTAL_PASOS), 0, RoundingMode.HALF_UP);
+                    .multiply(BigDecimal.valueOf(100))
+                    .divide(BigDecimal.valueOf(TOTAL_PASOS), 0, RoundingMode.HALF_UP);
 
-            return new PasoGuiadoDTO(
-                nextStep <= TOTAL_PASOS ? nextStep : TOTAL_PASOS,
-                obtenerNombrePaso(nextStep <= TOTAL_PASOS ? nextStep : TOTAL_PASOS),
-                obtenerDescripcionPaso(nextStep <= TOTAL_PASOS ? nextStep : TOTAL_PASOS, true),
-                nextStep <= TOTAL_PASOS ? "PENDIENTE" : "COMPLETO",
-                null, pct
-            );
+            return new PasoGuiadoDTO(nextStep <= TOTAL_PASOS ? nextStep : TOTAL_PASOS,
+                    obtenerNombrePaso(nextStep <= TOTAL_PASOS ? nextStep : TOTAL_PASOS),
+                    obtenerDescripcionPaso(nextStep <= TOTAL_PASOS ? nextStep : TOTAL_PASOS, true),
+                    nextStep <= TOTAL_PASOS ? "PENDIENTE" : "COMPLETO", null, pct);
         } catch (SQLException e) {
             LoggerUtil.error("Error al avanzar paso", e);
         }
-
         return obtenerPasoActual(expedienteId);
     }
 
     public PasoGuiadoDTO retrocederPaso(int expedienteId, int usuarioId) {
         try (Connection con = ConexionDB.obtenerConexion()) {
             initStepsIfNeeded(con, expedienteId);
-
             int currentStep = 1;
             for (int i = 1; i <= TOTAL_PASOS; i++) {
                 String est = getStepEstado(con, expedienteId, i);
@@ -221,47 +215,34 @@ public class FlujoGuiadoServicio {
             if (currentStep > TOTAL_PASOS) {
                 currentStep = TOTAL_PASOS;
             }
-
             if (currentStep <= 1) {
                 return obtenerPasoActual(expedienteId);
             }
-
             int prevStep = currentStep - 1;
             setStepEstado(con, expedienteId, prevStep, "PENDIENTE");
-
             int completedCount = countCompletedSteps(con, expedienteId);
             BigDecimal pct = BigDecimal.valueOf(completedCount)
-                .multiply(BigDecimal.valueOf(100))
-                .divide(BigDecimal.valueOf(TOTAL_PASOS), 0, RoundingMode.HALF_UP);
-
-            return new PasoGuiadoDTO(
-                prevStep, obtenerNombrePaso(prevStep),
-                obtenerDescripcionPaso(prevStep, true), "PENDIENTE", null, pct
-            );
+                    .multiply(BigDecimal.valueOf(100))
+                    .divide(BigDecimal.valueOf(TOTAL_PASOS), 0, RoundingMode.HALF_UP);
+            return new PasoGuiadoDTO(prevStep, obtenerNombrePaso(prevStep),
+                    obtenerDescripcionPaso(prevStep, true), "PENDIENTE", null, pct);
         } catch (SQLException e) {
             LoggerUtil.error("Error al retroceder paso", e);
         }
-
         return obtenerPasoActual(expedienteId);
     }
 
     public void bloquearPaso(int expedienteId, String motivo) {
         try (Connection con = ConexionDB.obtenerConexion()) {
             initStepsIfNeeded(con, expedienteId);
-
             int currentStep = 1;
             for (int i = 1; i <= TOTAL_PASOS; i++) {
                 String est = getStepEstado(con, expedienteId, i);
-                if (est == null || "PENDIENTE".equals(est)) {
-                    currentStep = i;
-                    break;
-                }
-                if ("BLOQUEADO".equals(est)) {
+                if (est == null || "PENDIENTE".equals(est) || "BLOQUEADO".equals(est)) {
                     currentStep = i;
                     break;
                 }
             }
-
             setStepEstado(con, expedienteId, currentStep, "BLOQUEADO", motivo);
         } catch (SQLException e) {
             LoggerUtil.error("Error al bloquear paso", e);
@@ -279,8 +260,16 @@ public class FlujoGuiadoServicio {
     public static boolean isPasoCompleto(int expedienteId, int paso) {
         return "COMPLETO".equals(getPasoEstado(expedienteId, paso));
     }
+
+    /**
+     * Desbloquea un paso previamente marcado como BLOQUEADO.
+     */
+    public void desbloquearPaso(int expedienteId, int paso) {
+        try (Connection con = ConexionDB.obtenerConexion()) {
+            initStepsIfNeeded(con, expedienteId);
+            setStepEstado(con, expedienteId, paso, "PENDIENTE");
+        } catch (SQLException e) {
+            LoggerUtil.error("Error al desbloquear paso", e);
+        }
+    }
 }
-
-
-
-

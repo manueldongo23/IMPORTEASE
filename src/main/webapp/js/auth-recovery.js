@@ -5,74 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const csrfToken = window.ImportEase?.csrfToken || window.csrfToken || "";
     const csrfHeader = window.ImportEase?.csrfHeader || "X-CSRF-TOKEN";
 
-    /* ── Neural Network Canvas Animation ── */
-    (() => {
-        const canvas = document.getElementById('neuralCanvas');
-        if (!canvas) return;
-
-        // Prevent duplicate animation runs
-        if (canvas.dataset.initialized === 'true') return;
-        canvas.dataset.initialized = 'true';
-
-        const ctxCanvas = canvas.getContext('2d');
-        let W, H;
-
-        function resize() {
-            W = canvas.width = canvas.offsetWidth;
-            H = canvas.height = canvas.offsetHeight;
-        }
-        resize();
-        window.addEventListener('resize', resize);
-
-        const NODE_COUNT = 50;
-        const CONNECTION_DIST = 120;
-        const SPEED = 0.25;
-        const nodes = [];
-
-        function randomNode() {
-            return {
-                x: Math.random() * W,
-                y: Math.random() * H,
-                vx: (Math.random() - 0.5) * SPEED,
-                vy: (Math.random() - 0.5) * SPEED
-            };
-        }
-        for (let i = 0; i < NODE_COUNT; i++) nodes.push(randomNode());
-
-        function draw() {
-            if (!document.getElementById('neuralCanvas')) return;
-            
-            ctxCanvas.clearRect(0, 0, W, H);
-            for (let i = 0; i < nodes.length; i++) {
-                const n = nodes[i];
-                n.x += n.vx;
-                n.y += n.vy;
-                if (n.x < 0 || n.x > W) n.vx *= -1;
-                if (n.y < 0 || n.y > H) n.vy *= -1;
-
-                ctxCanvas.beginPath();
-                ctxCanvas.arc(n.x, n.y, 1.5, 0, Math.PI * 2);
-                ctxCanvas.fillStyle = 'rgba(96,165,250,0.4)';
-                ctxCanvas.fill();
-
-                for (let j = i + 1; j < nodes.length; j++) {
-                    const m = nodes[j];
-                    const dx = n.x - m.x;
-                    const dy = n.y - m.y;
-                    const dist = Math.sqrt(dx * dx + dy * dy);
-                    if (dist < CONNECTION_DIST) {
-                        ctxCanvas.beginPath();
-                        ctxCanvas.moveTo(n.x, n.y);
-                        ctxCanvas.lineTo(m.x, m.y);
-                        ctxCanvas.strokeStyle = 'rgba(96,165,250,' + (0.07 * (1 - dist / CONNECTION_DIST)) + ')';
-                        ctxCanvas.stroke();
-                    }
-                }
-            }
-            requestAnimationFrame(draw);
-        }
-        draw();
-    })();
+    initNeuralCanvas('neuralCanvas', { nodeCount: 50 });
 
     /* ── Toast Notifications ── */
     function showToast(title, message, isSuccess) {

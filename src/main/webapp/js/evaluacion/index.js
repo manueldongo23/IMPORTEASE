@@ -7,11 +7,12 @@ window.ImportEaseWizard = window.ImportEaseWizard || {};
 (function(W) {
 
     // Fetch interceptor to handle session timeout emergency saves
+    // Se compone con el interceptor de progress bar via flag global
     (function() {
-        const originalFetch = window.fetch;
+        const baseFetch = window.fetch;
         window.fetch = async function(...args) {
             try {
-                const response = await originalFetch(...args);
+                const response = await baseFetch(...args);
                 if (response.status === 401 || response.status === 403) {
                     if (typeof W.wizardData !== 'undefined' && typeof W.saveWizardDraft === 'function') {
                         W.saveWizardDraft();
@@ -25,6 +26,7 @@ window.ImportEaseWizard = window.ImportEaseWizard || {};
                 throw error;
             }
         };
+        window.__fetchPatched = true;
     })();
 
     W.initWizardNormally = function() {

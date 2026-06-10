@@ -19,17 +19,7 @@
     // Toda la logica en SeguimientoServicio - JSP solo renderiza
     SeguimientoDTO seg = new SeguimientoServicio().construir(usuarioId, operacionIdParam);
 
-    // Breadcrumb
-    request.setAttribute("activePage", "seguimiento");
-    List<Map<String,String>> crumbs = new ArrayList<>();
-    Map<String,String> crumb1 = new HashMap<>();
-    crumb1.put("url", "dashboard.jsp");
-    crumb1.put("label", "Inicio");
-    crumbs.add(crumb1);
-    Map<String,String> crumb2 = new HashMap<>();
-    crumb2.put("label", "Seguimiento");
-    crumbs.add(crumb2);
-    request.setAttribute("breadcrumb", crumbs);
+
 
     // Todas las importaciones del usuario (para selector de operacion)
     List<Importacion> todas = new ArrayList<>();
@@ -129,18 +119,7 @@
 </head>
 <body class="flex h-screen overflow-hidden bg-[#F8FAFC] font-['Outfit'] text-[#1E293B]">
     <jsp:include page="/fragments/toast.jsp" />
-    <% 
-        request.setAttribute("activePage", "seguimiento");
-        List<Map<String,String>> crumbs = new ArrayList<>();
-        Map<String,String> crumb1 = new HashMap<>();
-        crumb1.put("url", "dashboard.jsp");
-        crumb1.put("label", "Inicio");
-        crumbs.add(crumb1);
-        Map<String,String> crumb2 = new HashMap<>();
-        crumb2.put("label", "Seguimiento");
-        crumbs.add(crumb2);
-        request.setAttribute("breadcrumb", crumbs);
-    %>
+
     <jsp:include page="/fragments/sidebar.jsp" />
 
     <main style="flex:1;overflow-y:auto;display:flex;flex-direction:column;background:#F8FAFC;">
@@ -170,7 +149,7 @@
                 </div>
                 <button onclick="window.location.href='evaluacion.jsp'" class="seg-btn-new">Crear mi primera importación</button>
             </div>
-            <% } else { // has importacion
+            <% } else { // has importacion %>
 
             <!-- Hero Card -->
             <div class="seg-card hero-card">

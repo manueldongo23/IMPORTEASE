@@ -41,7 +41,7 @@ document.getElementById('btnRefresh').addEventListener('click', function() {
 
 async function loadOperaciones() {
     try {
-        const r = await fetch('/api/operaciones', { credentials: 'same-origin' });
+        const r = await fetch(window.ctx + '/api/operaciones', { credentials: 'same-origin' });
         if (!r.ok) return;
         const data = await r.json();
         const sel = document.getElementById('operacionSelect');
@@ -72,7 +72,7 @@ async function loadAll() {
 
 async function loadPasoActual() {
     try {
-        const r = await fetch('/api/wizard/pasoActual?expedienteId=' + currentExpedienteId, { credentials: 'same-origin' });
+        const r = await fetch(window.ctx + '/api/wizard/pasoActual?expedienteId=' + currentExpedienteId, { credentials: 'same-origin' });
         if (r.status === 403) {
             document.getElementById('stepContent').innerHTML = '<div class="text-red-500 font-bold">No autorizado para este expediente</div>';
             return;
@@ -143,7 +143,7 @@ function renderPasoActual(data) {
 
 async function loadHealth() {
     try {
-        const r = await fetch('/api/wizard/salud?expedienteId=' + currentExpedienteId, { credentials: 'same-origin' });
+        const r = await fetch(window.ctx + '/api/wizard/salud?expedienteId=' + currentExpedienteId, { credentials: 'same-origin' });
         if (!r.ok) return;
         const data = await r.json();
         renderHealth(data);
@@ -186,7 +186,7 @@ function renderHealth(data) {
 
 async function loadNextAction() {
     try {
-        const r = await fetch('/api/wizard/siguienteAccion?expedienteId=' + currentExpedienteId, { credentials: 'same-origin' });
+        const r = await fetch(window.ctx + '/api/wizard/siguienteAccion?expedienteId=' + currentExpedienteId, { credentials: 'same-origin' });
         if (!r.ok) return;
         const data = await r.json();
         renderNextAction(data);
@@ -216,7 +216,7 @@ function renderNextAction(data) {
 
 async function loadCoherencia() {
     try {
-        const r = await fetch('/api/wizard/coherencia?expedienteId=' + currentExpedienteId, { credentials: 'same-origin' });
+        const r = await fetch(window.ctx + '/api/wizard/coherencia?expedienteId=' + currentExpedienteId, { credentials: 'same-origin' });
         if (!r.ok) return;
         const data = await r.json();
         renderCoherencia(data);
@@ -250,8 +250,8 @@ function renderCoherencia(issues) {
 async function avanzarPaso() {
     if (!currentExpedienteId) return;
     try {
-        const r = await fetch('/api/wizard/avanzar?expedienteId=' + currentExpedienteId, {
-            method: 'POST', credentials: 'same-origin', headers: { 'X-CSRF-TOKEN': window.csrfToken || '' }
+        const r = await fetch(window.ctx + '/api/wizard/avanzar?expedienteId=' + currentExpedienteId, {
+            method: 'POST', credentials: 'same-origin', headers: { 'X-CSRF-TOKEN': window.csrfToken }
         });
         if (r.status === 403) { alert('No autorizado para este expediente'); return; }
         const data = await r.json();
@@ -265,8 +265,8 @@ async function avanzarPaso() {
 async function retrocederPaso() {
     if (!currentExpedienteId) return;
     try {
-        const r = await fetch('/api/wizard/retroceder?expedienteId=' + currentExpedienteId, {
-            method: 'POST', credentials: 'same-origin', headers: { 'X-CSRF-TOKEN': window.csrfToken || '' }
+        const r = await fetch(window.ctx + '/api/wizard/retroceder?expedienteId=' + currentExpedienteId, {
+            method: 'POST', credentials: 'same-origin', headers: { 'X-CSRF-TOKEN': window.csrfToken }
         });
         if (r.status === 403) { alert('No autorizado para este expediente'); return; }
         const data = await r.json();
@@ -282,8 +282,8 @@ async function bloquearPaso() {
     const motivo = prompt('Motivo del bloqueo:');
     if (motivo === null) return;
     try {
-        const r = await fetch('/api/wizard/bloquear?expedienteId=' + currentExpedienteId + '&motivo=' + encodeURIComponent(motivo || 'Bloqueado por el usuario'), {
-            method: 'POST', credentials: 'same-origin', headers: { 'X-CSRF-TOKEN': window.csrfToken || '' }
+        const r = await fetch(window.ctx + '/api/wizard/bloquear?expedienteId=' + currentExpedienteId + '&motivo=' + encodeURIComponent(motivo || 'Bloqueado por el usuario'), {
+            method: 'POST', credentials: 'same-origin', headers: { 'X-CSRF-TOKEN': window.csrfToken }
         });
         if (r.status === 403) { alert('No autorizado para este expediente'); return; }
         await loadAll();

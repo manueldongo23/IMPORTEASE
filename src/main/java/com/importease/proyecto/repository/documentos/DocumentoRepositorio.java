@@ -161,8 +161,14 @@ public class DocumentoRepositorio {
         }
     }
 
+    private static final java.util.Map<String, String> COLUMNA_DOC_MAP = java.util.Map.of(
+        "FACTURA_COMERCIAL", "documento_factura",
+        "BILL_OF_LADING", "documento_bl",
+        "CERTIFICADO_ORIGEN", "documento_cert_origen"
+    );
+
     private void actualizarOperacionFichas(Connection con, int importacionId, String tipoDoc, int valor) throws SQLException {
-        String colName = columnaDocumento(normalizarTipoDocumento(tipoDoc));
+        String colName = COLUMNA_DOC_MAP.get(normalizarTipoDocumento(tipoDoc));
         if (colName == null) {
             return;
         }
@@ -176,16 +182,7 @@ public class DocumentoRepositorio {
     }
 
     private String columnaDocumento(String tipoDoc) {
-        if ("FACTURA_COMERCIAL".equals(tipoDoc)) {
-            return "documento_factura";
-        }
-        if ("BILL_OF_LADING".equals(tipoDoc)) {
-            return "documento_bl";
-        }
-        if ("CERTIFICADO_ORIGEN".equals(tipoDoc)) {
-            return "documento_certificado_origen";
-        }
-        return null;
+        return COLUMNA_DOC_MAP.get(tipoDoc);
     }
 
     private String normalizarTipoDocumento(String tipoDoc) {

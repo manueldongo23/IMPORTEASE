@@ -76,6 +76,20 @@ public class MigrationTest {
                 LoggerUtil.info("[INFO] Columna usado ya existe o no se pudo agregar en operaciones: " + e.getMessage());
             }
 
+            try {
+                stmt.executeUpdate("ALTER TABLE usuarios ADD COLUMN nivel_experiencia VARCHAR(50) DEFAULT 'NUNCA'");
+                LoggerUtil.info("[OK] Columna nivel_experiencia agregada a usuarios con exito.");
+            } catch (Exception e) {
+                LoggerUtil.info("[INFO] Columna nivel_experiencia ya existe o no se pudo agregar: " + e.getMessage());
+            }
+
+            try {
+                stmt.executeUpdate("ALTER TABLE usuarios ADD COLUMN preferencias VARCHAR(255) DEFAULT '{\"ocultarConsejos\":false}'");
+                LoggerUtil.info("[OK] Columna preferencias agregada a usuarios con exito.");
+            } catch (Exception e) {
+                LoggerUtil.info("[INFO] Columna preferencias ya existe o no se pudo agregar: " + e.getMessage());
+            }
+
             LoggerUtil.info("====== MIGRACION FINALIZADA CON EXITO ======");
             assertTrue(true);
         } catch (Exception e) {

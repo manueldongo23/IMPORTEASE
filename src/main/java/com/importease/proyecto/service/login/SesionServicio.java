@@ -7,6 +7,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 public class SesionServicio {
+    public static void invalidarSesionesUsuario(Integer usuarioId) {
+    }
+
     public void startAuthenticatedSession(HttpServletRequest request, Usuario usuario) {
         HttpSession currentSession = request.getSession(false);
         if (currentSession != null) {
@@ -19,6 +22,9 @@ public class SesionServicio {
         session.setAttribute("usuarioNombre", usuario.getRazonSocial());
         session.setAttribute("usuarioRuc", usuario.getRuc());
         session.setAttribute("usuario", usuario.getEmail());
+        session.setAttribute("usuarioPerfil", usuario.getPerfil());
+        session.setAttribute("usuarioNivelExperiencia", usuario.getNivelExperiencia());
+        session.setAttribute("usuarioPreferencias", usuario.getPreferencias());
         request.changeSessionId();
         CsrfUtil.setToken(session);
     }

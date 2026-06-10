@@ -48,7 +48,7 @@ public class ImportacionRepositorio {
         if (con == null) {
             return validarDocumentosParaDespacho(importacionId);
         }
-        String sql = "SELECT documento_factura, documento_bl, documento_certificado_origen FROM operaciones WHERE id = ?";
+        String sql = "SELECT id, documento_factura, documento_bl, documento_certificado_origen FROM operaciones WHERE id = ?";
         try (PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, importacionId);
             try (ResultSet rs = ps.executeQuery()) {
@@ -242,10 +242,48 @@ public class ImportacionRepositorio {
             return listarPorUsuario(usuarioId);
         }
         List<Importacion> lista = new ArrayList<>();
-        String sql = "SELECT * FROM operaciones WHERE usuario_id = ? ORDER BY fecha_creacion DESC";
+        String sql = "SELECT id, usuario_id, producto_desc, hs_code, pais_origen, incoterm, fob, flete, seguro, cif, tipo_cambio, ad_valorem_aplicado, isc_aplicado, igv_aplicado, ipm_aplicado, percepcion_aplicada, total_impuestos, estado, canal_asignado, numero_dam, fecha_numeracion, fecha_creacion, usado FROM operaciones WHERE usuario_id = ? ORDER BY fecha_creacion DESC";
 
         try (PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, usuarioId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    lista.add(mapearImportacion(rs));
+                }
+            }
+        }
+        return lista;
+    }
+
+    public List<Importacion> listarPorUsuario(int usuarioId, int limit, int offset) throws SQLException {
+        ImportacionJpaRepositorio repo = getJpaRepo();
+        if (repo != null) {
+            try {
+                List<Importacion> lista = new ArrayList<>();
+                for (OperacionEntity entity : repo.findByUsuarioIdOrderByFechaCreacionDesc(usuarioId)) {
+                    lista.add(ImportacionMapper.toModel(entity));
+                }
+                return lista;
+            } catch (Exception e) {
+                LoggerUtil.warn("Fallo listarPorUsuario paginado con JPA, fallback JDBC: " + e.getMessage());
+            }
+        }
+        try (Connection con = ConexionDB.obtenerConexion()) {
+            return listarPorUsuario(con, usuarioId, limit, offset);
+        }
+    }
+
+    public List<Importacion> listarPorUsuario(Connection con, int usuarioId, int limit, int offset) throws SQLException {
+        if (con == null) {
+            return listarPorUsuario(usuarioId, limit, offset);
+        }
+        List<Importacion> lista = new ArrayList<>();
+        String sql = "SELECT id, usuario_id, producto_desc, hs_code, pais_origen, incoterm, fob, flete, seguro, cif, tipo_cambio, ad_valorem_aplicado, isc_aplicado, igv_aplicado, ipm_aplicado, percepcion_aplicada, total_impuestos, estado, canal_asignado, numero_dam, fecha_numeracion, fecha_creacion, usado FROM operaciones WHERE usuario_id = ? ORDER BY fecha_creacion DESC LIMIT ? OFFSET ?";
+
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, usuarioId);
+            ps.setInt(2, limit);
+            ps.setInt(3, offset);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     lista.add(mapearImportacion(rs));
@@ -275,7 +313,7 @@ public class ImportacionRepositorio {
         if (con == null) {
             return buscarPorId(id);
         }
-        String sql = "SELECT * FROM operaciones WHERE id = ?";
+        String sql = "SELECT id, usuario_id, producto_desc, hs_code, pais_origen, incoterm, fob, flete, seguro, cif, tipo_cambio, ad_valorem_aplicado, isc_aplicado, igv_aplicado, ipm_aplicado, percepcion_aplicada, total_impuestos, estado, canal_asignado, numero_dam, fecha_numeracion, fecha_creacion, usado FROM operaciones WHERE id = ?";
         try (PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, id);
             try (ResultSet rs = ps.executeQuery()) {
@@ -352,7 +390,7 @@ public class ImportacionRepositorio {
                 }
             }
         } catch (Exception e) {
-            // fallback
+            LoggerUtil.warn("No se pudo contar consultas HS para estadisticas: " + e.getMessage());
         }
         stats.put("consultasHs", consultasHs);
 
@@ -395,7 +433,7 @@ public class ImportacionRepositorio {
                 }
             }
         } catch (Exception e) {
-            // fallback
+            LoggerUtil.warn("No se pudo obtener entidad mas frecuente: " + e.getMessage());
         }
         stats.put("entidadMasFrecuente", entidadMasFrecuente);
 
@@ -409,7 +447,7 @@ public class ImportacionRepositorio {
                 }
             }
         } catch (Exception e) {
-            // fallback
+            LoggerUtil.warn("No se pudo obtener pais mas frecuente: " + e.getMessage());
         }
         stats.put("paisMasFrecuente", paisMasFrecuente);
 
@@ -424,7 +462,7 @@ public class ImportacionRepositorio {
                     }
                 }
             } catch (Exception e) {
-                // fallback
+                LoggerUtil.warn("No se pudo calcular TLC ahorro: " + e.getMessage());
             }
         }
         stats.put("tlcAhorro", tlcAhorro);

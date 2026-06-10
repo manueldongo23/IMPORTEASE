@@ -15,6 +15,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class PermisoEvaluacionServicio {
     private final PermisoRepositorio permisoRepositorio;
@@ -58,7 +59,17 @@ public class PermisoEvaluacionServicio {
             }
         }
 
-        resultado.put("restricciones", reglasUnicas);
+        List<ReglaRestriccion> restriccionesDedup = new ArrayList<>(
+            reglasUnicas.stream()
+                .collect(Collectors.toMap(
+                    r -> r.getCodigoEntidad() + "|" + r.getTipoPermiso(),
+                    r -> r,
+                    (existente, nuevo) -> existente,
+                    LinkedHashMap::new
+                ))
+                .values()
+        );
+        resultado.put("restricciones", restriccionesDedup);
         resultado.put("solicitudes", solicitudesCreadas);
         resultado.put("entidades", entidades);
         resultado.put("nivelRiesgoMax", nivelRiesgoMax);
@@ -69,9 +80,9 @@ public class PermisoEvaluacionServicio {
     private List<ReglaRestriccion> buscarReglasUnicas(String hsCode, String descripcion) {
         List<ReglaRestriccion> reglasPorHs = permisoRepositorio.buscarReglasPorHsCode(hsCode);
         List<ReglaRestriccion> reglasPorPalabra = permisoRepositorio.buscarReglasPorPalabraClave(descripcion);
-        Map<Integer, ReglaRestriccion> reglasMap = new LinkedHashMap<>();
-        for (ReglaRestriccion r : reglasPorHs) reglasMap.put(r.getId(), r);
-        for (ReglaRestriccion r : reglasPorPalabra) reglasMap.put(r.getId(), r);
+        Map<String, ReglaRestriccion> reglasMap = new LinkedHashMap<>();
+        for (ReglaRestriccion r : reglasPorHs) reglasMap.put(r.getCodigoEntidad() + "|" + r.getTipoPermiso(), r);
+        for (ReglaRestriccion r : reglasPorPalabra) reglasMap.put(r.getCodigoEntidad() + "|" + r.getTipoPermiso(), r);
         return new ArrayList<>(reglasMap.values());
     }
 

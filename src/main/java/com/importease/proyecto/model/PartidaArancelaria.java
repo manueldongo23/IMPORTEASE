@@ -7,7 +7,7 @@ public class PartidaArancelaria {
     private String descripcion;
     private double adValoremPct;
     private double iscPct;
-    private double igbPct;
+    private double igvPct;
     private double ipmPct;
     private double seguroPct;
     private String tendenciaActual; // CRECIENTE, ESTANCADO, DECADENCIA
@@ -27,8 +27,8 @@ public class PartidaArancelaria {
     public double getIscPct() { return iscPct; }
     public void setIscPct(double iscPct) { this.iscPct = iscPct; }
 
-    public double getIgbPct() { return igbPct; }
-    public void setIgbPct(double igbPct) { this.igbPct = igbPct; }
+    public double getIgvPct() { return igvPct; }
+    public void setIgvPct(double igvPct) { this.igvPct = igvPct; }
 
     public double getIpmPct() { return ipmPct; }
     public void setIpmPct(double ipmPct) { this.ipmPct = ipmPct; }

@@ -7,7 +7,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.Instant;
 
@@ -17,36 +16,7 @@ import java.time.Instant;
  */
 public class PasswordResetTokenRepositorio {
 
-    private static volatile boolean tableChecked = false;
-
-    private void ensureTable() {
-        if (tableChecked) return;
-        synchronized (PasswordResetTokenRepositorio.class) {
-            if (tableChecked) return;
-            String sql = "CREATE TABLE IF NOT EXISTS password_reset_tokens ("
-                    + "id BIGINT AUTO_INCREMENT PRIMARY KEY, "
-                    + "usuario_id INT NOT NULL, "
-                    + "token_hash CHAR(64) NOT NULL, "
-                    + "expires_at DATETIME NOT NULL, "
-                    + "used_at DATETIME NULL, "
-                    + "created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, "
-                    + "created_ip VARCHAR(45) NULL, "
-                    + "user_agent VARCHAR(255) NULL, "
-                    + "INDEX idx_prt_usuario_estado (usuario_id, used_at, expires_at), "
-                    + "UNIQUE KEY uk_prt_token_hash (token_hash)"
-                    + ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
-            try (Connection con = ConexionDB.obtenerConexion(); Statement st = con.createStatement()) {
-                st.execute(sql);
-                tableChecked = true;
-            } catch (SQLException e) {
-                LoggerUtil.error("No se pudo asegurar la tabla password_reset_tokens", e);
-                throw new IllegalStateException("No se pudo preparar la tabla de recuperacion de contrasena.", e);
-            }
-        }
-    }
-
     public void invalidateActiveTokens(int usuarioId) {
-        ensureTable();
         String sql = "UPDATE password_reset_tokens SET used_at = NOW() WHERE usuario_id = ? AND used_at IS NULL";
         try (Connection con = ConexionDB.obtenerConexion(); PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, usuarioId);
@@ -58,7 +28,6 @@ public class PasswordResetTokenRepositorio {
     }
 
     public void createToken(int usuarioId, String tokenHash, Instant expiresAt, String ip, String userAgent) {
-        ensureTable();
         String sql = "INSERT INTO password_reset_tokens (usuario_id, token_hash, expires_at, created_ip, user_agent) VALUES (?, ?, ?, ?, ?)";
         try (Connection con = ConexionDB.obtenerConexion(); PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, usuarioId);
@@ -74,7 +43,6 @@ public class PasswordResetTokenRepositorio {
     }
 
     public boolean isValidUnusedToken(int usuarioId, String tokenHash) {
-        ensureTable();
         String sql = "SELECT id FROM password_reset_tokens "
                 + "WHERE usuario_id = ? AND token_hash = ? AND used_at IS NULL AND expires_at > NOW() "
                 + "ORDER BY id DESC LIMIT 1";
@@ -91,7 +59,6 @@ public class PasswordResetTokenRepositorio {
     }
 
     public void markUsed(int usuarioId, String tokenHash) {
-        ensureTable();
         String sql = "UPDATE password_reset_tokens SET used_at = NOW() "
                 + "WHERE usuario_id = ? AND token_hash = ? AND used_at IS NULL";
         try (Connection con = ConexionDB.obtenerConexion(); PreparedStatement ps = con.prepareStatement(sql)) {
@@ -105,13 +72,11 @@ public class PasswordResetTokenRepositorio {
     }
 
     public int countRecentRequestsByIp(String ip, int minutes) {
-        ensureTable();
         String sql = "SELECT COUNT(*) FROM password_reset_tokens WHERE created_ip = ? AND created_at >= ?";
         return count(sql, ip, minutes);
     }
 
     public int countRecentRequestsByUsuario(int usuarioId, int minutes) {
-        ensureTable();
         String sql = "SELECT COUNT(*) FROM password_reset_tokens WHERE usuario_id = ? AND created_at >= ?";
         return count(sql, usuarioId, minutes);
     }

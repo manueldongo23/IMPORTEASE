@@ -42,10 +42,7 @@ public class SecurityHeadersFilter implements Filter {
         // Deshabilitar protecciÃ³n XSS legacy (mitigaciÃ³n de comportamiento problemÃ¡tico de navegadores antiguos)
         res.setHeader("X-XSS-Protection", "0");
 
-        // Cabeceras Anti-CachÃ© estrictas para datos aduaneros/financieros
-        res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
-        res.setHeader("Pragma", "no-cache");
-        res.setHeader("Expires", "0");
+        // Cabeceras de cachÃ© delegadas a CacheControlFilter (orden 0)
 
         // Referrer Policy
         res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
@@ -53,27 +50,21 @@ public class SecurityHeadersFilter implements Filter {
         // Permissions Policy (deshabilitar APIs innecesarias)
         res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
 
-        // Content Security Policy
-        // script-src governs inline event handlers (onclick, etc.) - 'unsafe-inline' needed since nonce can't be applied to inline handlers
-        // script-src-elem governs <script> elements - nonce required, 'unsafe-inline' omitted (ignored when nonce present)
         res.setHeader("Content-Security-Policy",
             "default-src 'self'; " +
             "base-uri 'self'; " +
             "object-src 'none'; " +
             "form-action 'self'; " +
-            "script-src 'self' 'unsafe-inline'; " +
-            "script-src-elem 'self' 'nonce-" + cspNonce + "' https://cdn.jsdelivr.net https://unpkg.com; " +
+            "script-src 'self' 'nonce-" + cspNonce + "' https://cdn.jsdelivr.net https://unpkg.com https://cdnjs.cloudflare.com; " +
+            "script-src-elem 'self' 'nonce-" + cspNonce + "' https://cdn.jsdelivr.net https://unpkg.com https://cdnjs.cloudflare.com; " +
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; " +
             "style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; " +
             "font-src 'self' https://fonts.gstatic.com; " +
-            "img-src 'self' data: https://www.vuce.gob.pe https://orientacion.sunat.gob.pe; " +
-            "connect-src 'self' https://estadisticas.bcrp.gob.pe; " +
+            "img-src 'self' data:; " +
+            "connect-src 'self'; " +
             "frame-ancestors 'none';");
 
-        // HSTS solo cuando la solicitud llega por HTTPS. No se envia en localhost HTTP para no romper demo local.
-        if (isHttps(httpRequest)) {
-            res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
-        }
+        res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
 
         // Establecer codificaciÃ³n de caracteres global UTF-8
         request.setCharacterEncoding("UTF-8");
@@ -107,7 +98,11 @@ public class SecurityHeadersFilter implements Filter {
             }
         };
 
-        chain.doFilter(request, wrappedResponse);
+        try {
+            chain.doFilter(request, wrappedResponse);
+        } finally {
+            TipoCambioServicio.limpiarThreadLocal();
+        }
     }
 
     @Override

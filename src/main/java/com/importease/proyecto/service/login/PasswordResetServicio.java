@@ -118,6 +118,7 @@ public class PasswordResetServicio {
         }
 
         tokenRepositorio.markUsed(usuario.getId(), tokenHash);
+        com.importease.proyecto.service.login.SesionServicio.invalidarSesionesUsuario(usuario.getId());
         LoggerUtil.info("Contrasena restablecida correctamente para usuarioId=" + usuario.getId()
                 + " ip=" + maskIp(ip));
         return ResetResult.success(usuario.getId());

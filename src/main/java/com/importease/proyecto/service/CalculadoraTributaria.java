@@ -79,7 +79,16 @@ public class CalculadoraTributaria {
 
         if ("CN".equalsIgnoreCase(origen)) {
             if (hs.isTlcChina()) {
-                tasaAdValorem = BigDecimal.ZERO;
+                // Excluir capÃ­tulos 50-63 (textiles) y 64 (calzado) del TLC
+                String codigo = hs.getCodigo();
+                if (codigo != null && codigo.length() >= 2) {
+                    int capitulo = Integer.parseInt(codigo.substring(0, 2));
+                    if (capitulo < 50 || capitulo > 64) {
+                        tasaAdValorem = BigDecimal.ZERO;
+                    }
+                } else {
+                    tasaAdValorem = BigDecimal.ZERO;
+                }
                 res.setMensajeTlc(getMessage("tlc.china.aplicado", "âœ… TLC PerÃº-China aplicado (legacy). Ad-Valorem 0%. âš ï¸ Sujeto a exclusiÃ³n arancelaria segÃºn subpartida especÃ­fica (ej. calzado y textiles)."));
             } else {
                 res.setMensajeTlc(getMessage("tlc.china.no_aplicado", "No se encontrÃ³ TLC vigente con China. Se aplica arancel general."));
@@ -109,17 +118,15 @@ public class CalculadoraTributaria {
         res.setIsc(isc);
 
         BigDecimal baseIgv = cif.add(arancel).add(isc);
+        // IGV e IPM fijos por ley: 16% IGV + 2% IPM = 18%
+        BigDecimal tasaIgv = BigDecimal.valueOf(16);
+        BigDecimal tasaIpm = BigDecimal.valueOf(2);
+
+        // Si el producto tiene IGV = 0 (exonerado), ambos son 0
         BigDecimal rawIgv = hs.getIgv();
-        BigDecimal rawIpm = hs.getIpm();
-        BigDecimal tasaIgv = (rawIgv != null && rawIgv.compareTo(BigDecimal.ZERO) != 0) ? rawIgv : BigDecimal.valueOf(16);
-        BigDecimal tasaIpm = (rawIpm != null && rawIpm.compareTo(BigDecimal.ZERO) != 0) ? rawIpm : BigDecimal.valueOf(2);
-        
         if (rawIgv != null && rawIgv.compareTo(BigDecimal.ZERO) == 0) {
             tasaIgv = BigDecimal.ZERO;
             tasaIpm = BigDecimal.ZERO;
-        } else if (tasaIgv.compareTo(BigDecimal.valueOf(18)) == 0) {
-            tasaIgv = BigDecimal.valueOf(16);
-            tasaIpm = BigDecimal.valueOf(2);
         }
         
         BigDecimal igv = baseIgv.multiply(tasaIgv).divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);

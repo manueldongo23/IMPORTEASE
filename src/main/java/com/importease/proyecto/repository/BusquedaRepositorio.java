@@ -85,19 +85,18 @@ public class BusquedaRepositorio {
         if (terminos == null || terminos.isEmpty()) return resultados;
 
         String placeholders = String.join(",", Collections.nCopies(terminos.size(), "?"));
-        String sql = "SELECT LOWER(termino) as term_lower, DATE(fecha_busqueda) as dia, COUNT(*) as total " +
+        String sql = "SELECT termino as term_lower, DATE(fecha_busqueda) as dia, COUNT(*) as total " +
                      "FROM log_busquedas " +
                      "WHERE fecha_busqueda >= DATE_SUB(NOW(), INTERVAL ? DAY) " +
-                     "AND LOWER(termino) IN (" + placeholders + ") " +
-                     "GROUP BY term_lower, dia ORDER BY dia ASC";
+                     "AND termino IN (" + placeholders + ") " +
+                     "GROUP BY termino, dia ORDER BY dia ASC";
         try (Connection con = ConexionDB.obtenerConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, dias);
             int idx = 2;
             for (String t : terminos) {
-                String termLower = t.toLowerCase();
-                ps.setString(idx++, termLower);
-                resultados.put(termLower, new ArrayList<>());
+                ps.setString(idx++, t);
+                resultados.put(t.toLowerCase(), new ArrayList<>());
             }
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {

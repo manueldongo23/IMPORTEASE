@@ -27,6 +27,11 @@ public class TrackingControlador extends HttpServlet {
         setupJson(resp);
         String path = req.getPathInfo();
         Integer usuarioId = getUsuarioId(req);
+        if (usuarioId == null) {
+            resp.setStatus(401);
+            write(resp, RespuestaEnvoltorio.error("UNAUTHORIZED", "Autenticacion requerida", "BD_LOCAL", false));
+            return;
+        }
         try {
             Object data;
             if ("/listar".equals(path)) {
@@ -64,6 +69,11 @@ public class TrackingControlador extends HttpServlet {
         setupJson(resp);
         String path = req.getPathInfo();
         Integer usuarioId = getUsuarioId(req);
+        if (usuarioId == null) {
+            resp.setStatus(401);
+            write(resp, RespuestaEnvoltorio.error("UNAUTHORIZED", "Autenticacion requerida", "BD_LOCAL", false));
+            return;
+        }
         String sessionId = req.getSession(false) != null ? req.getSession(false).getId() : null;
         try {
             if ("/registrar".equals(path)) {
@@ -88,7 +98,7 @@ public class TrackingControlador extends HttpServlet {
             write(resp, RespuestaEnvoltorio.error("ENDPOINT_NOT_FOUND", "Endpoint de tracking no encontrado", "BD_LOCAL", false));
         } catch (IllegalArgumentException e) {
             resp.setStatus(400);
-            write(resp, RespuestaEnvoltorio.error("TRACKING_BAD_REQUEST", e.getMessage(), "BD_LOCAL", false));
+            write(resp, RespuestaEnvoltorio.error("TRACKING_BAD_REQUEST", "Solicitud de tracking invalida", "BD_LOCAL", false));
         } catch (Exception e) {
             resp.setStatus(500);
             write(resp, RespuestaEnvoltorio.error("TRACKING_MUTATION_ERROR", "No se pudo procesar tracking", "BD_LOCAL", false));

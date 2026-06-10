@@ -5,6 +5,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 /**
  * Filtro global de autenticaciÃ³n.
@@ -22,33 +24,43 @@ public class AuthFilter implements Filter {
         HttpServletRequest req = (HttpServletRequest) request;
         HttpServletResponse res = (HttpServletResponse) response;
 
-        String uri = req.getRequestURI();
+        String rawUri = req.getRequestURI();
+        String uri;
+        try {
+            uri = new URI(rawUri).normalize().getPath();
+        } catch (URISyntaxException e) {
+            uri = rawUri;
+        }
+
         if (uri.contains("/api/permiso/")) {
             res.setHeader("X-Deprecated-Endpoint", "true");
             res.setHeader("X-New-Endpoint", req.getContextPath() + uri.substring(uri.indexOf("/api/permiso/")).replace("/api/permiso/", "/api/permisos/"));
         }
-        String pathInfo = req.getPathInfo(); // MÃ¡s preciso que endsWith
+        String pathInfo = req.getPathInfo();
 
-        // Endpoints pÃºblicos que NO requieren autenticaciÃ³n (matching exacto)
         java.util.Set<String> publicPaths = java.util.Set.of(
-            "/login", "/registro", "/captcha", "/validarRuc", "/recuperar", "/resetear"
+            "/login", "/logout", "/registro", "/captcha", "/validarRuc", "/recuperar", "/resetear",
+            "/monitoreo/health", "/monitoreo/metrics"
         );
         if (pathInfo != null && publicPaths.contains(pathInfo)) {
             chain.doFilter(request, response);
             return;
         }
-        // Fallback: URI matching para rutas sin pathInfo (ej: /captcha servlet)
-        for (String pub : publicPaths) {
-            String allowedApiSuffix = "/api/usuario" + pub;
-            if (uri.endsWith(allowedApiSuffix) || uri.equals(req.getContextPath() + pub)) {
-                chain.doFilter(request, response);
-                return;
+        String cp = req.getContextPath();
+        boolean isPublic = false;
+        for (String p : publicPaths) {
+            if (uri.equals(cp + "/api" + p) || uri.equals(cp + p) || uri.equals(cp + "/api/usuario" + p)) {
+                isPublic = true;
+                break;
             }
         }
+        if (isPublic) {
+            chain.doFilter(request, response);
+            return;
+        }
 
-        // Endpoint publico limitado para registrar eventos anonimos. Evita abrir todo /api/tendencias/*.
         boolean publicTendencias = "POST".equalsIgnoreCase(req.getMethod())
-                && uri.equals(req.getContextPath() + "/api/tendencias/registrar");
+                && uri.equals(cp + "/api/tendencias/registrar");
         if (publicTendencias) {
             chain.doFilter(request, response);
             return;
@@ -64,11 +76,31 @@ public class AuthFilter implements Filter {
             return;
         }
 
-        chain.doFilter(request, response);
+        // Enforce Read-Only for Consultor role
+        String perfil = (String) session.getAttribute("usuarioPerfil");
+        String method = req.getMethod();
+        if ("consultor".equalsIgnoreCase(perfil)) {
+            boolean isWriteOperation = !"GET".equalsIgnoreCase(method) && !"HEAD".equalsIgnoreCase(method) && !"OPTIONS".equalsIgnoreCase(method);
+            if (isWriteOperation) {
+                boolean isLogoutOrPrefs = uri.endsWith("/logout") || uri.endsWith("/preferencias");
+                if (!isLogoutOrPrefs) {
+                    res.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    res.setContentType("application/json");
+                    res.setCharacterEncoding("UTF-8");
+                    res.getWriter().print("{\"error\":\"Acceso denegado: El rol Consultor solo tiene permisos de lectura.\"}");
+                    return;
+                }
+            }
+        }
+
+        try {
+            chain.doFilter(request, response);
+        } finally {
+            TipoCambioServicio.limpiarThreadLocal();
+        }
     }
 
     @Override
     public void destroy() {}
 }
-
 

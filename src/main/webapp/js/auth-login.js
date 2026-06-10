@@ -1,107 +1,16 @@
 /* auth-login.js - Login Interface Interaction & Submission */
 
 document.addEventListener('DOMContentLoaded', () => {
+    if (window._loginController) window._loginController.abort();
+    const loginController = new AbortController();
+    window._loginController = loginController;
+
     // Read context path, CSRF details from global namespace safely
     const ctx = window.ImportEase?.ctx || window.ctx || "";
     const csrfToken = window.ImportEase?.csrfToken || window.csrfToken || "";
     const csrfHeader = window.ImportEase?.csrfHeader || "X-CSRF-TOKEN";
 
-    /* ── Neural Network Canvas Animation ── */
-    (() => {
-        const canvas = document.getElementById('neuralCanvas');
-        if (!canvas) return;
-        
-        // Prevent duplicate animation runs
-        if (canvas.dataset.initialized === 'true') return;
-        canvas.dataset.initialized = 'true';
-
-        const ctxCanvas = canvas.getContext('2d');
-        let W, H, nodes = [], frame = 0;
-
-        function resize() {
-            W = canvas.width  = canvas.offsetWidth;
-            H = canvas.height = canvas.offsetHeight;
-            initNodes();
-        }
-
-        function initNodes() {
-            nodes = [];
-            const count = Math.floor((W * H) / 9500);
-            for (let i = 0; i < count; i++) {
-                nodes.push({
-                    x: Math.random() * W,
-                    y: Math.random() * H,
-                    vx: (Math.random() - 0.5) * 0.28,
-                    vy: (Math.random() - 0.5) * 0.28,
-                    r: Math.random() * 1.5 + 0.6,
-                    hue: Math.random() > 0.65 ? 195 : 265, // Cyan & Purple/Violet nodes
-                    pulse: Math.random() * Math.PI * 2
-                });
-            }
-        }
-
-        function draw() {
-            // Check if element is still in DOM and visible
-            if (!document.getElementById('neuralCanvas')) return;
-            
-            ctxCanvas.clearRect(0, 0, W, H);
-            frame++;
-
-            nodes.forEach(n => {
-                n.x += n.vx;
-                n.y += n.vy;
-                if (n.x < 0 || n.x > W) n.vx *= -1;
-                if (n.y < 0 || n.y > H) n.vy *= -1;
-                n.pulse += 0.012;
-            });
-
-            // Connections
-            const maxDist = Math.min(W, H) * 0.25;
-            for (let i = 0; i < nodes.length; i++) {
-                for (let j = i + 1; j < nodes.length; j++) {
-                    const a = nodes[i], b = nodes[j];
-                    const dx = a.x - b.x, dy = a.y - b.y;
-                    const dist = Math.sqrt(dx*dx + dy*dy);
-                    if (dist < maxDist) {
-                        const alpha = (1 - dist / maxDist) * 0.12;
-                        const grad = ctxCanvas.createLinearGradient(a.x, a.y, b.x, b.y);
-                        grad.addColorStop(0, `hsla(${a.hue}, 80%, 70%, ${alpha})`);
-                        grad.addColorStop(1, `hsla(${b.hue}, 80%, 70%, ${alpha})`);
-                        ctxCanvas.beginPath();
-                        ctxCanvas.moveTo(a.x, a.y);
-                        ctxCanvas.lineTo(b.x, b.y);
-                        ctxCanvas.strokeStyle = grad;
-                        ctxCanvas.lineWidth = 0.65;
-                        ctxCanvas.stroke();
-                    }
-                }
-            }
-
-            // Render Nodes
-            nodes.forEach(n => {
-                const glow = (Math.sin(n.pulse) * 0.5 + 0.5) * 0.5 + 0.3;
-                ctxCanvas.beginPath();
-                ctxCanvas.arc(n.x, n.y, n.r, 0, Math.PI * 2);
-                ctxCanvas.fillStyle = `hsla(${n.hue}, 85%, 72%, ${glow})`;
-                ctxCanvas.fill();
-
-                // Soft radial glow
-                ctxCanvas.beginPath();
-                ctxCanvas.arc(n.x, n.y, n.r * 4, 0, Math.PI * 2);
-                const radGrad = ctxCanvas.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r * 4);
-                radGrad.addColorStop(0, `hsla(${n.hue}, 85%, 72%, ${glow * 0.15})`);
-                radGrad.addColorStop(1, `hsla(${n.hue}, 85%, 72%, 0)`);
-                ctxCanvas.fillStyle = radGrad;
-                ctxCanvas.fill();
-            });
-
-            requestAnimationFrame(draw);
-        }
-
-        window.addEventListener('resize', resize);
-        resize();
-        draw();
-    })();
+    initNeuralCanvas('neuralCanvas', { nodeCount: 50 });
 
     /* ── Toggle Password Visibility ── */
     const togglePwBtn = document.getElementById('togglePw');
@@ -180,6 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const res = await fetch(endpoint, {
                     method: 'POST',
                     headers: reqHeaders,
+                    signal: loginController.signal,
                     body: JSON.stringify({
                         email: emailEl.value,
                         password: passwordEl.value,

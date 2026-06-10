@@ -534,7 +534,7 @@ public class E2EFlujoCompletoTest {
                 if (sql.contains("ON DUPLICATE KEY UPDATE")) return psUpsert;
                 if (sql.contains("COUNT(*)")) return psCount;
                 if (sql.contains("SELECT estado") || sql.contains("motivo_bloqueo")) return psSelect;
-                if (sql.contains("SELECT * FROM operaciones") || sql.contains("SELECT * FROM importaciones")) return psOpsAll;
+                if (sql.contains("FROM operaciones") || sql.contains("SELECT * FROM importaciones")) return psOpsAll;
                 if (sql.contains("FROM usuarios")) return psUsers;
                 if (sql.contains("documentos_transporte")) return psDocTrans;
                 if (sql.contains("FROM manifiestos_carga")) return psMan;

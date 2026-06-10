@@ -178,4 +178,26 @@ public class UsuarioEntity {
     public void setRucConfianza(BigDecimal rucConfianza) {
         this.rucConfianza = rucConfianza;
     }
+
+    @Column(name = "nivel_experiencia")
+    private String nivelExperiencia;
+
+    @Column(name = "preferencias")
+    private String preferencias;
+
+    public String getNivelExperiencia() {
+        return nivelExperiencia;
+    }
+
+    public void setNivelExperiencia(String nivelExperiencia) {
+        this.nivelExperiencia = nivelExperiencia;
+    }
+
+    public String getPreferencias() {
+        return preferencias;
+    }
+
+    public void setPreferencias(String preferencias) {
+        this.preferencias = preferencias;
+    }
 }

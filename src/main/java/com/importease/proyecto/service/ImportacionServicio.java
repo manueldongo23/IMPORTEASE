@@ -26,6 +26,7 @@ public class ImportacionServicio {
     private final TipoCambioServicio tipoCambioServicio;
     private final UsuarioRepositorio usuarioRepositorio;
     private final HsCodeRepositorio hsCodeRepositorio;
+    private final Object estadoLock = new Object();
 
     public ImportacionServicio() {
         this(new ImportacionRepositorio(), new TipoCambioServicio(), new UsuarioRepositorio(), new HsCodeRepositorio());
@@ -219,6 +220,12 @@ public class ImportacionServicio {
             hsToUse = arancelServicio.consultarArancel(hsCode);
         }
 
+        if (fob != null && fob.compareTo(new BigDecimal("2000")) > 0) {
+            // Flag that customs agent is required per LGA Art. 17
+            LoggerUtil.warn("Operacion con FOB > $2000: se requiere agente de aduanas");
+            // Add alert to the operation
+        }
+
         if ("PERSONAL".equals(tipo)) {
             HsCode tempHs = new HsCode();
             tempHs.setCodigo(hsToUse.getCodigo());
@@ -245,7 +252,7 @@ public class ImportacionServicio {
                 
                 imp.setValorCifBD(res.getCif());
                 imp.setMontoAdValoremBD(BigDecimal.ZERO);
-                imp.setMontoIgbBD(BigDecimal.ZERO);
+                imp.setMontoIgvBD(BigDecimal.ZERO);
                 imp.setMontoIpmBD(BigDecimal.ZERO);
                 imp.setMontoPercepcionBD(BigDecimal.ZERO);
                 imp.setTotalImpuestosBD(BigDecimal.ZERO);
@@ -268,7 +275,7 @@ public class ImportacionServicio {
                 
                 imp.setValorCifBD(res.getCif());
                 imp.setMontoAdValoremBD(res.getArancel());
-                imp.setMontoIgbBD(res.getIgv());
+                imp.setMontoIgvBD(res.getIgv());
                 imp.setMontoIpmBD(res.getIpm());
                 imp.setMontoPercepcionBD(BigDecimal.ZERO);
                 imp.setTotalImpuestosBD(res.getTotalImpuestos());
@@ -280,7 +287,7 @@ public class ImportacionServicio {
                 
                 imp.setValorCifBD(res.getCif());
                 imp.setMontoAdValoremBD(res.getArancel());
-                imp.setMontoIgbBD(res.getIgv());
+                imp.setMontoIgvBD(res.getIgv());
                 imp.setMontoIpmBD(res.getIpm());
                 imp.setMontoPercepcionBD(res.getPercepcion());
                 imp.setTotalImpuestosBD(res.getTotalImpuestos());
@@ -293,7 +300,7 @@ public class ImportacionServicio {
             
             imp.setValorCifBD(res.getCif());
             imp.setMontoAdValoremBD(res.getArancel());
-            imp.setMontoIgbBD(res.getIgv());
+            imp.setMontoIgvBD(res.getIgv());
             imp.setMontoIpmBD(res.getIpm());
             imp.setMontoPercepcionBD(res.getPercepcion());
             imp.setTotalImpuestosBD(res.getTotalImpuestos());
@@ -350,7 +357,8 @@ public class ImportacionServicio {
         }
     }
 
-    public synchronized boolean cambiarEstado(int id, String nuevoEstado) {
+    public boolean cambiarEstado(int id, String nuevoEstado) {
+        synchronized (estadoLock) {
         try (Connection con = ConexionDB.obtenerConexion()) {
             Importacion imp = importacionRepositorio.buscarPorId(con, id);
             if (imp == null) {
@@ -382,6 +390,7 @@ public class ImportacionServicio {
         } catch (SQLException e) {
             LoggerUtil.error("Error al cambiar estado e insertar historial", e);
             return false;
+        }
         }
     }
 

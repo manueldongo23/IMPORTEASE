@@ -50,7 +50,7 @@ public class FlujoGuiadoReglaServicio {
             }
         } catch (SQLException e) {
             LoggerUtil.error("Error al validar paso " + paso, e);
-            return "Error interno al validar el paso: " + e.getMessage();
+            return "Error interno al validar el paso";
         }
     }
 
@@ -133,7 +133,7 @@ public class FlujoGuiadoReglaServicio {
             PredamValidacionServicio.validate(con, imp);
             return null;
         } catch (PredamValidacionException e) {
-            return "Validacion PRE-DAM fallo: " + e.getMessage();
+            return "Validacion PRE-DAM fallo";
         }
     }
 

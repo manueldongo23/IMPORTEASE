@@ -167,6 +167,10 @@ public class UsuarioControlador extends HttpServlet {
                     while ((line = reader.readLine()) != null) sb.append(line);
                 }
                 Usuario newUser = gson.fromJson(sb.toString(), Usuario.class);
+                newUser.setPerfil("IMPORTADOR_ESTANDAR");
+                newUser.setBuenContribuyente(false);
+                newUser.setRucValidado(false);
+                newUser.setRucConfianza(0.0);
 
                 StringBuilder outMensaje = new StringBuilder();
                 boolean ok = usuarioServicio.registrarUsuario(newUser, outMensaje);
@@ -242,6 +246,33 @@ public class UsuarioControlador extends HttpServlet {
                         "success", result.isSuccess(),
                         "mensaje", result.getMensaje()
                 )));
+            }
+            else if ("/preferencias".equals(path)) {
+                HttpSession session = req.getSession(false);
+                Object uIdAttr = (session != null) ? session.getAttribute("usuarioId") : null;
+                if (session != null && uIdAttr != null) {
+                    int id = (int) uIdAttr;
+                    StringBuilder sb = new StringBuilder();
+                    try (BufferedReader reader = req.getReader()) {
+                        String line;
+                        while ((line = reader.readLine()) != null) sb.append(line);
+                    }
+                    Map<String, String> data = gson.fromJson(sb.toString(), new TypeToken<Map<String, String>>(){}.getType());
+                    String nivel = data != null ? data.get("nivelExperiencia") : null;
+                    String prefs = data != null ? data.get("preferencias") : null;
+
+                    boolean ok = usuarioServicio.actualizarExperienciaYPreferencias(id, nivel, prefs);
+                    if (ok) {
+                        if (nivel != null) session.setAttribute("usuarioNivelExperiencia", nivel);
+                        if (prefs != null) session.setAttribute("usuarioPreferencias", prefs);
+                        out.print(gson.toJson(Map.of("success", true)));
+                    } else {
+                        out.print(gson.toJson(Map.of("success", false, "mensaje", "No se pudo actualizar las preferencias.")));
+                    }
+                } else {
+                    resp.setStatus(401);
+                    out.print("{\"error\":\"No autenticado\"}");
+                }
             }
             else {
                 resp.setStatus(404);

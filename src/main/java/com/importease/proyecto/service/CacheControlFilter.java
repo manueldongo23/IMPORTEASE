@@ -15,9 +15,17 @@ public class CacheControlFilter implements Filter {
             throws IOException, ServletException {
 
         HttpServletResponse res = (HttpServletResponse) response;
-        // 30 days cache for static resources
-        res.setHeader("Cache-Control", "public, max-age=2592000");
-        chain.doFilter(request, response);
+        String uri = ((javax.servlet.http.HttpServletRequest) request).getRequestURI();
+        if (uri.contains("/api/")) {
+            res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
+        } else {
+            res.setHeader("Cache-Control", "public, max-age=2592000");
+        }
+        try {
+            chain.doFilter(request, response);
+        } finally {
+            TipoCambioServicio.limpiarThreadLocal();
+        }
     }
 
     @Override
