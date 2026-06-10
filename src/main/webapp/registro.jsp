@@ -1,4 +1,9 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" isELIgnored="true" %>
+<%!
+    private String escapeJs(String value) {
+        return value == null ? "" : value.replace("\\", "\\\\").replace("'", "\\'").replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "\\r").replace("<", "\\u003C").replace(">", "\\u003E").replace("&", "\\u0026");
+    }
+%>
 <!DOCTYPE html>
 <html lang="es">
 <head>
