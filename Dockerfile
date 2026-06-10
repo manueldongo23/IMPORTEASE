@@ -5,6 +5,7 @@ WORKDIR /app
 # Cache de dependencias (solo se reconstruye si pom.xml cambia)
 COPY pom.xml .
 COPY .mvn .mvn
+COPY sql ./sql
 RUN mvn dependency:go-offline -B -q
 
 # Compilar sin tests (se ejecutan aparte en CI)
@@ -21,6 +22,7 @@ WORKDIR /app
 
 # Copiar el WAR construido
 COPY --from=build /app/target/Importease.war app.war
+COPY --from=build /app/sql ./sql
 
-# Arrancar Spring Boot con el puerto dinámico de Railway usando exec-form
-CMD ["java", "-Xms256m", "-Xmx512m", "-Djava.awt.headless=true", "-Dserver.port=${PORT}", "-jar", "app.war"]
+# El puerto se resuelve desde `application.properties` via la variable de entorno PORT.
+CMD ["java", "-Xms256m", "-Xmx512m", "-Djava.awt.headless=true", "-jar", "app.war"]

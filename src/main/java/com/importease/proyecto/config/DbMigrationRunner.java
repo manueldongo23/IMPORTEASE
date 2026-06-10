@@ -3,12 +3,14 @@ package com.importease.proyecto.config;
 import com.importease.proyecto.service.ConexionDB;
 import com.importease.proyecto.service.LoggerUtil;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.sql.Connection;
 import java.sql.Statement;
 
 @Component
+@Order(1)
 public class DbMigrationRunner implements CommandLineRunner {
 
     @Override
