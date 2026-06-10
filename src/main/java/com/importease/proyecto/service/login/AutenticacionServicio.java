@@ -48,7 +48,7 @@ public class AutenticacionServicio {
             return ResultadoAutenticacion.failed("Credenciales invalidas");
         }
 
-        String email = request.getEmail().trim();
+        String email = request.getEmail().trim().toLowerCase();
         if (!captchaValidacionServicio.isValid(session, request.getCaptcha())) {
             attemptService.recordFailedAttempt(clientIp);
             return ResultadoAutenticacion.failed("CAPTCHA incorrecto o expirado");

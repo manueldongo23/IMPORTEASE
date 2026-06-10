@@ -3,12 +3,13 @@ package com.importease.proyecto.service;
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.security.SecureRandom;
 import java.util.Base64;
 
 /**
- * Filtro global que aÃ±ade headers de seguridad HTTP a TODAS las respuestas.
+ * Filtro global que añade headers de seguridad HTTP a TODAS las respuestas.
  */
 public class SecurityHeadersFilter implements Filter {
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
@@ -31,6 +32,19 @@ public class SecurityHeadersFilter implements Filter {
         String cspNonce = generateNonce();
         if (httpRequest != null) {
             httpRequest.setAttribute("csp_nonce", cspNonce);
+
+            // Inyectar tokens CSRF para las vistas JSP (evita fallos 403 en peticiones AJAX mutativas)
+            String uri = httpRequest.getRequestURI();
+            boolean isAsset = uri.contains("/css/") || uri.contains("/js/") || uri.contains("/images/")
+                    || uri.endsWith(".css") || uri.endsWith(".js") || uri.endsWith(".svg")
+                    || uri.endsWith(".png") || uri.endsWith(".jpg");
+            if (!isAsset) {
+                HttpSession session = httpRequest.getSession(true);
+                CsrfUtil.setToken(session);
+                String csrfToken = CsrfUtil.getToken(session);
+                httpRequest.setAttribute("csrfToken", csrfToken);
+                httpRequest.setAttribute("csrfHeader", "X-CSRF-TOKEN");
+            }
         }
 
         // Prevenir Clickjacking

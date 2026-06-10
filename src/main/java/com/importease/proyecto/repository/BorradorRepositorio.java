@@ -13,10 +13,10 @@ public class BorradorRepositorio {
 
     public boolean guardarBorrador(int usuarioId, int pasoActual, String jsonBorrador) {
         String sql = "INSERT INTO importacion_borrador (usuario_id, paso_actual, json_borrador, estado) " +
-                     "VALUES (?, ?, ?, 'BORRADOR') AS new " +
+                     "VALUES (?, ?, ?, 'BORRADOR') " +
                      "ON DUPLICATE KEY UPDATE " +
-                     "paso_actual = new.paso_actual, " +
-                     "json_borrador = new.json_borrador, " +
+                     "paso_actual = VALUES(paso_actual), " +
+                     "json_borrador = VALUES(json_borrador), " +
                      "fecha_actualizacion = CURRENT_TIMESTAMP";
 
         try (Connection con = ConexionDB.obtenerConexion();

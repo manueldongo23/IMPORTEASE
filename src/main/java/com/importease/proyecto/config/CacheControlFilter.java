@@ -6,7 +6,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 public class CacheControlFilter implements Filter {
-    public void init(FilterConfig filterConfig) {}
+    @Override
+    public void init(javax.servlet.FilterConfig filterConfig) throws ServletException {}
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
@@ -34,5 +35,6 @@ public class CacheControlFilter implements Filter {
         chain.doFilter(request, response);
     }
 
+    @Override
     public void destroy() {}
 }

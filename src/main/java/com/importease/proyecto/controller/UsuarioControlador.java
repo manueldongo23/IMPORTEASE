@@ -167,6 +167,9 @@ public class UsuarioControlador extends HttpServlet {
                     while ((line = reader.readLine()) != null) sb.append(line);
                 }
                 Usuario newUser = gson.fromJson(sb.toString(), Usuario.class);
+                if (newUser != null && newUser.getEmail() != null) {
+                    newUser.setEmail(newUser.getEmail().trim().toLowerCase());
+                }
                 newUser.setPerfil("IMPORTADOR_ESTANDAR");
                 newUser.setBuenContribuyente(false);
                 newUser.setRucValidado(false);

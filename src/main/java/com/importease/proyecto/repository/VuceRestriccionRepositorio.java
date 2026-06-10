@@ -22,8 +22,9 @@ public class VuceRestriccionRepositorio implements IVuceRestriccionRepositorio {
         try (Connection con = ConexionDB.obtenerConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, entidad);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) return mapearVuce(rs);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return mapearVuce(rs);
+            }
         } catch (SQLException e) {
             LoggerUtil.error("Error al obtener restricción VUCE por entidad", e);
         }

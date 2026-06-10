@@ -28,6 +28,13 @@ public class UsuarioServicio {
     }
 
     public boolean registrarUsuario(Usuario newUser, StringBuilder outMensaje) {
+        if (newUser == null) {
+            outMensaje.append("Datos de usuario nulos.");
+            return false;
+        }
+        if (newUser.getEmail() != null) {
+            newUser.setEmail(newUser.getEmail().trim().toLowerCase());
+        }
         // 1. Validar campos
         if (!UsuarioValidador.esEmailValido(newUser.getEmail())) {
             outMensaje.append("Formato de correo electrónico inválido.");
@@ -82,13 +89,14 @@ public class UsuarioServicio {
     }
 
     public boolean actualizarPassword(String email, String newPassword, StringBuilder outMensaje) {
+        String normalizedEmail = (email != null) ? email.trim().toLowerCase() : null;
         String pwError = UsuarioValidador.validarPassword(newPassword);
         if (pwError != null) {
             outMensaje.append(pwError);
             return false;
         }
         String hashedPassword = hashContrasenaServicio.hash(newPassword);
-        return usuarioRepositorio.actualizarPassword(email, hashedPassword);
+        return usuarioRepositorio.actualizarPassword(normalizedEmail, hashedPassword);
     }
 
     public Usuario obtenerPorId(int id) {
@@ -96,7 +104,8 @@ public class UsuarioServicio {
     }
 
     public Usuario obtenerPorEmail(String email) {
-        return usuarioRepositorio.buscarPorEmail(email);
+        String normalizedEmail = (email != null) ? email.trim().toLowerCase() : null;
+        return usuarioRepositorio.buscarPorEmail(normalizedEmail);
     }
 
     public Usuario obtenerPorRuc(String ruc) {
