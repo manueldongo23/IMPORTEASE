@@ -22,12 +22,5 @@ WORKDIR /app
 # Copiar el WAR construido
 COPY --from=build /app/target/Importease.war app.war
 
-# Puerto que Railway asignará dinámicamente
-ENV PORT=8084
-EXPOSE ${PORT}
-
-# Arrancar Spring Boot con el puerto dinámico de Railway
-CMD java -Xms256m -Xmx512m \
-  -Djava.awt.headless=true \
-  -Dserver.port=${PORT} \
-  -jar app.war
+# Arrancar Spring Boot con el puerto dinámico de Railway usando exec-form
+CMD ["java", "-Xms256m", "-Xmx512m", "-Djava.awt.headless=true", "-Dserver.port=${PORT}", "-jar", "app.war"]
