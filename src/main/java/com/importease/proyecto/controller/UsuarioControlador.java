@@ -130,6 +130,7 @@ public class UsuarioControlador extends HttpServlet {
             if (!CsrfUtil.validateRequest(req, resp)) return;
         }
 
+        PrintWriter out = null;
         try {
             // El login handler maneja su propia respuesta completa (status, content-type, writer)
             // No debemos abrir resp.getWriter() antes de delegarle
@@ -139,7 +140,7 @@ public class UsuarioControlador extends HttpServlet {
             }
 
             resp.setContentType("application/json");
-            PrintWriter out = resp.getWriter();
+            out = resp.getWriter();
 
             if ("/logout".equals(path)) {
 
@@ -290,7 +291,15 @@ public class UsuarioControlador extends HttpServlet {
         } catch (Exception e) {
             com.importease.proyecto.service.LoggerUtil.error("Error en doPost de UsuarioControlador", e);
             resp.setStatus(500);
-            out.print(gson.toJson(Map.of("success", false, "mensaje", "Error interno del servidor al procesar la solicitud.")));
+            if (out == null) {
+                try {
+                    resp.setContentType("application/json");
+                    out = resp.getWriter();
+                } catch (IOException ignored) {}
+            }
+            if (out != null) {
+                out.print(gson.toJson(Map.of("success", false, "mensaje", "Error interno del servidor al procesar la solicitud.")));
+            }
         }
     }
 }
