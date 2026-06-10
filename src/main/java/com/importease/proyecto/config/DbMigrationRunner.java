@@ -31,6 +31,27 @@ public class DbMigrationRunner implements CommandLineRunner {
                 LoggerUtil.info("[INFO] Columna 'ipm' ya existe o no se pudo agregar: " + e.getMessage());
             }
 
+            try {
+                stmt.executeUpdate("ALTER TABLE hs_codes ADD COLUMN antidumping BOOLEAN DEFAULT FALSE AFTER entidad_vuce");
+                LoggerUtil.info("[OK] Columna 'antidumping' agregada a 'hs_codes'.");
+            } catch (Exception e) {
+                LoggerUtil.info("[INFO] Columna 'antidumping' ya existe o no se pudo agregar: " + e.getMessage());
+            }
+
+            try {
+                stmt.executeUpdate("ALTER TABLE hs_codes ADD COLUMN restricciones TEXT NULL AFTER antidumping");
+                LoggerUtil.info("[OK] Columna 'restricciones' agregada a 'hs_codes'.");
+            } catch (Exception e) {
+                LoggerUtil.info("[INFO] Columna 'restricciones' ya existe o no se pudo agregar: " + e.getMessage());
+            }
+
+            try {
+                stmt.executeUpdate("ALTER TABLE hs_codes ADD COLUMN prohibiciones TEXT NULL AFTER restricciones");
+                LoggerUtil.info("[OK] Columna 'prohibiciones' agregada a 'hs_codes'.");
+            } catch (Exception e) {
+                LoggerUtil.info("[INFO] Columna 'prohibiciones' ya existe o no se pudo agregar: " + e.getMessage());
+            }
+
             // 1. Columna prev_hash
             try {
                 stmt.executeUpdate("ALTER TABLE expediente_eventos_auditoria ADD COLUMN prev_hash VARCHAR(64) NULL");
