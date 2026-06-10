@@ -247,7 +247,7 @@
                     <div style="margin: 1.5rem 0 0.75rem 0;">
                         <span class="auth-section-header">Diagnóstico y Configuración de Perfil</span>
                     </div>
-                    <div class="auth-grid auth-grid-2">
+                    <div class="auth-grid">
                         <!-- Nivel de Experiencia -->
                         <div class="auth-field">
                             <div class="auth-field-header">
@@ -263,25 +263,6 @@
                                     <option value="NUNCA" selected>Nunca he importado (Se activarán guías y consejos)</option>
                                     <option value="POCO">He importado 1-2 veces</option>
                                     <option value="FRECUENTE">Importo con frecuencia (Se simplificará la interfaz)</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <!-- Rol de Usuario -->
-                        <div class="auth-field">
-                            <div class="auth-field-header">
-                                <label class="auth-field-label" for="perfil">Rol en la Plataforma</label>
-                            </div>
-                            <div class="auth-input-wrap">
-                                <span class="auth-input-icon">
-                                    <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/>
-                                    </svg>
-                                </span>
-                                <select id="perfil" class="auth-input cursor-pointer" required style="background: #ffffff; color: #1a1d2e; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 10px 14px 10px 42px; width: 100%; font-size: 0.8rem; font-weight: 600; outline: none; -webkit-appearance: none;">
-                                    <option value="OPERADOR" selected>Operador (Crea y gestiona operaciones)</option>
-                                    <option value="CONSULTOR">Consultor (Permisos de solo lectura)</option>
-                                    <option value="ADMIN">Administrador (Gestión total de la cuenta)</option>
                                 </select>
                             </div>
                         </div>

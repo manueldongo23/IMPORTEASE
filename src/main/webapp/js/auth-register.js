@@ -94,7 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         razonText.className = "text-[10px] font-bold text-emerald-500";
                     }
                     razonInput.readOnly = true;
-                    razonInput.className = "premium-input readonly-state validated";
+                    razonInput.className = "auth-input readonly-state validated";
                 } else if (data.rucValidado && esSimulacion) {
                     btn.innerText = "✓ Simulado";
                     btn.className = "px-5 rounded-2xl bg-amber-50 border border-amber-200 text-[10px] font-black text-amber-700 uppercase tracking-widest";
@@ -107,7 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         razonText.className = "text-[10px] font-bold text-emerald-500";
                     }
                     razonInput.readOnly = false;
-                    razonInput.className = "premium-input validated";
+                    razonInput.className = "auth-input validated";
                     razonInput.focus();
                 } else if (data.rucValidado && esLocal) {
                     btn.innerText = "✓ Estructura OK";
@@ -123,7 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     razonInput.readOnly = false;
                     razonInput.value = "";
                     razonInput.placeholder = "Ingresa la razón social de la empresa";
-                    razonInput.className = "premium-input validated";
+                    razonInput.className = "auth-input validated";
                     razonInput.focus();
                 } else {
                     btn.innerText = "Pendiente";
@@ -137,7 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         razonText.className = "text-[10px] font-bold text-orange-500";
                     }
                     razonInput.readOnly = false;
-                    razonInput.className = "premium-input validated";
+                    razonInput.className = "auth-input validated";
                 }
             } else {
                 showNotification('RUC no válido', 'El número de RUC no es válido o no está registrado.', false);

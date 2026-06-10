@@ -33,7 +33,7 @@ public class CsrfFilter implements Filter {
 
                 boolean isPublicApi = normalizedUri.equals(context + "/api/login")
                         || normalizedUri.equals(context + "/api/usuario/login")
-                        || normalizedUri.equals(context + "/api/registro")
+                        || normalizedUri.equals(context + "/api/usuario/registro")
                         || normalizedUri.equals(context + "/api/usuario/recuperar")
                         || normalizedUri.equals(context + "/api/usuario/resetear")
                         || normalizedUri.equals(context + "/api/tendencias/registrar");
