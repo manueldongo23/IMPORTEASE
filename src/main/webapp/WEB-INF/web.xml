@@ -22,7 +22,6 @@
         <session-timeout>30</session-timeout>
         <cookie-config>
             <http-only>true</http-only>
-            <secure>true</secure> <!-- Local/demo HTTP compatible; en HTTPS SecurityHeadersFilter agrega Secure dinamicamente. -->
         </cookie-config>
         <tracking-mode>COOKIE</tracking-mode>
     </session-config>
