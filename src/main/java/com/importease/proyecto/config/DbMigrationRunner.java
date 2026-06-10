@@ -13,6 +13,10 @@ public class DbMigrationRunner implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
+        ejecutarMigraciones();
+    }
+
+    public static void ejecutarMigraciones() {
         LoggerUtil.info("====== INICIANDO MIGRACIONES AUTOMÁTICAS DE BASE DE DATOS ======");
         try (Connection con = ConexionDB.obtenerConexion();
              Statement stmt = con.createStatement()) {

@@ -18,5 +18,10 @@ public class DataSourceBridgeConfig {
     @PostConstruct
     public void init() {
         ConexionDB.setSpringManagedDataSource(dataSource);
+        try {
+            DbMigrationRunner.ejecutarMigraciones();
+        } catch (Exception e) {
+            com.importease.proyecto.service.LoggerUtil.error("Error al ejecutar migraciones en DataSourceBridgeConfig init", e);
+        }
     }
 }
