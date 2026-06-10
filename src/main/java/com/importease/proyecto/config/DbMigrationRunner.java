@@ -23,6 +23,14 @@ public class DbMigrationRunner implements CommandLineRunner {
         try (Connection con = ConexionDB.obtenerConexion();
              Statement stmt = con.createStatement()) {
 
+            // 0. Columna IPM en hs_codes
+            try {
+                stmt.executeUpdate("ALTER TABLE hs_codes ADD COLUMN ipm DECIMAL(5,2) DEFAULT 0.00 AFTER igv");
+                LoggerUtil.info("[OK] Columna 'ipm' agregada a 'hs_codes'.");
+            } catch (Exception e) {
+                LoggerUtil.info("[INFO] Columna 'ipm' ya existe o no se pudo agregar: " + e.getMessage());
+            }
+
             // 1. Columna prev_hash
             try {
                 stmt.executeUpdate("ALTER TABLE expediente_eventos_auditoria ADD COLUMN prev_hash VARCHAR(64) NULL");
