@@ -624,7 +624,8 @@ body.auth-page {
 }
 
 .auth-captcha-img-wrap {
-    flex: 0 0 50%;
+    flex: 1;
+    min-width: 0;
     height: 48px;
     border-radius: 0.75rem;
     overflow: hidden;
@@ -644,6 +645,7 @@ body.auth-page {
 
 .auth-captcha-input {
     flex: 1;
+    min-width: 0;
     padding: 0.8rem 1rem;
     border: 1.5px solid var(--auth-border-light);
     border-radius: 0.75rem;
