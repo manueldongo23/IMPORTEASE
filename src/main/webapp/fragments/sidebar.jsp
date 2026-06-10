@@ -52,6 +52,7 @@
 
 <link rel="stylesheet" href="css/sidebar.css">
 <script nonce="<%= escapeJs(String.valueOf(request.getAttribute("csp_nonce"))) %>" src="js/ux-enhancements.js" defer></script>
+<script nonce="<%= escapeJs(String.valueOf(request.getAttribute("csp_nonce"))) %>" src="js/csp-bindings.js" defer></script>
 <style nonce="<%= escapeJs(String.valueOf(request.getAttribute("csp_nonce"))) %>">
 .sidebar-tools-toggle {
     cursor: pointer;
