@@ -512,7 +512,6 @@
                                 <!-- Dynamic VUCE Confirmation Questions -->
                                 <div>
                                     <div class="flex items-center gap-2">
-                                        <div class="w-6 h-6 rounded-full bg-[#E0F2FE] text-[#0369A1] flex items-center justify-center font-bold text-xs shrink-0 font-sans">?</div>
                                         <h4 class="text-xs font-bold text-[#1A1D2E]">Preguntas rápidas para confirmar</h4>
                                     </div>
                                     <p id="dynamicQuestionMeta" class="text-[11px] text-[#5a6275] font-semibold mt-1">Estas respuestas nos ayudan a afinar el código y evitar confusiones.</p>
@@ -536,24 +535,8 @@
                                         <div class="relative z-10 flex flex-col items-start text-left">
                                             <div class="flex items-start gap-1">
                                                 <span class="text-5xl font-extrabold text-[#EDE9FE]/20 tracking-tighter leading-none select-none">02</span>
-                                                <!-- Sparkle svg -->
-                                                <svg class="w-4 h-4 text-white mt-1 shrink-0" viewBox="0 0 24 24" fill="currentColor">
-                                                    <path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z"/>
-                                                </svg>
                                             </div>
                                             <h4 class="text-sm font-bold text-white mt-2">Qué estamos revisando ahora</h4>
-                                        </div>
-                                        <!-- Magnifying glass on cardboard box SVG Illustration -->
-                                        <div class="relative z-10 w-16 h-16 shrink-0 flex items-center justify-center">
-                                            <svg class="w-14 h-14 opacity-90" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                <path d="M32 10L10 18V44L32 52L54 44V18L32 10Z" fill="#C7D2FE" fill-opacity="0.3"/>
-                                                <path d="M32 10L10 18L32 26L54 18L32 10Z" stroke="white" stroke-width="1.5" stroke-linejoin="round"/>
-                                                <path d="M10 18V44L32 52M54 18V44L32 52" stroke="white" stroke-width="1.5" stroke-linejoin="round"/>
-                                                <path d="M32 26V52" stroke="white" stroke-width="1.5" stroke-linejoin="round"/>
-                                                <!-- Magnifying glass -->
-                                                <circle cx="42" cy="38" r="8" fill="#5B50F0" stroke="white" stroke-width="2"/>
-                                                <path d="M47.5 43.5L56 52" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
-                                            </svg>
                                         </div>
                                     </div>
                                     

@@ -53,6 +53,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 // Reset Razon Social states
                 razonInput.value = "";
+                razonInput.readOnly = false;
+                razonInput.classList.remove('readonly-state');
                 razonInput.classList.remove('validated');
                 if (razonCheck) razonCheck.style.display = 'none';
                 if (razonIcon) razonIcon.classList.add('hidden');

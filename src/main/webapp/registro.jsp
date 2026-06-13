@@ -225,7 +225,7 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                                     </svg>
                                 </span>
-                                <input type="text" id="razonSocial" class="auth-input readonly-state" placeholder="Automático al validar RUC" required readonly>
+                                <input type="text" id="razonSocial" class="auth-input" placeholder="Razón Social (se completa al validar RUC)" required>
                                 <div id="razonCheck" class="auth-check-indicator">
                                     <svg fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>

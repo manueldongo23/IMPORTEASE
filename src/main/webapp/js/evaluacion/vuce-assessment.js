@@ -272,9 +272,9 @@ window.ImportEaseWizard = window.ImportEaseWizard || {};
             card.innerHTML = `
                 <span class="text-[11px] font-bold text-[#1a1d2e] leading-snug min-h-[40px]">${question.label}</span>
                 <div class="flex gap-1 bg-[#F3F4F6] p-1 rounded-xl" data-question-group="${question.id}">
-                    <button type="button" class="flex-1 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all cursor-pointer border-none ${currentValue === 'SI' ? 'bg-white text-[#5B50F0] shadow-sm font-extrabold' : 'bg-transparent text-[#6b7280] hover:text-[#1a1d2e]'}">Sí</button>
-                    <button type="button" class="flex-1 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all cursor-pointer border-none ${currentValue === 'NO' ? 'bg-white text-[#5B50F0] shadow-sm font-extrabold' : 'bg-transparent text-[#6b7280] hover:text-[#1a1d2e]'}">No</button>
-                    <button type="button" class="flex-1 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all cursor-pointer border-none ${currentValue === 'NOSE' ? 'bg-white text-[#5B50F0] shadow-sm font-extrabold' : 'bg-transparent text-[#6b7280] hover:text-[#1a1d2e]'}">No sé</button>
+                    <button type="button" data-value="SI" class="flex-1 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all cursor-pointer border-none ${currentValue === 'SI' ? 'bg-white text-[#5B50F0] shadow-sm font-extrabold' : 'bg-transparent text-[#6b7280] hover:text-[#1a1d2e]'}">Sí</button>
+                    <button type="button" data-value="NO" class="flex-1 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all cursor-pointer border-none ${currentValue === 'NO' ? 'bg-white text-[#5B50F0] shadow-sm font-extrabold' : 'bg-transparent text-[#6b7280] hover:text-[#1a1d2e]'}">No</button>
+                    <button type="button" data-value="NOSE" class="flex-1 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all cursor-pointer border-none ${currentValue === 'NOSE' ? 'bg-white text-[#5B50F0] shadow-sm font-extrabold' : 'bg-transparent text-[#6b7280] hover:text-[#1a1d2e]'}">No sé</button>
                 </div>
             `;
             area.appendChild(card);
@@ -547,7 +547,6 @@ window.ImportEaseWizard = window.ImportEaseWizard || {};
             W.wizardData.vuceQuestions.usado = W.getQuestionAnswer('qUsado') === 'SI';
             W.wizardData.vuceQuestions.madera = W.getQuestionAnswer('qMadera') === 'SI';
         }
-        W.renderDynamicQuestions();
         if (W.wizardData.vuceQuestions.madera && (!W.wizardData.selectedHS || !W.wizardData.selectedHS.requiereVuce)) {
             W.wizardData.selectedHS = {
                 codigo: '4407.91.00.00',
